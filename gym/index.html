@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Steffen's Gym</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0d0f12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SG Gym">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: one narrow phone column, sticky session bar on top, thumb-height tab bar below. Charcoal, one signal orange. */
+:root{
+  --bg:#0d0f12;
+  --surface:#161a1f;
+  --surface-2:#1d2229;
+  --line:#272d36;
+  --text:#f1f3f6;
+  --mute:#8b94a1;
+  --accent:#ff5d2e;
+  --accent-ink:#1a0a04;
+  --good:#3ddc97;
+  --display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --body:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-size:16px;line-height:1.4}
+body{min-height:100%;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+input,select{font:inherit;color:var(--text)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:480px;margin:0 auto;padding:0 16px}
+h1,h2,h3{margin:0;font-family:var(--display);text-transform:uppercase;letter-spacing:.02em;text-wrap:balance}
+
+.top{padding:calc(14px + env(safe-area-inset-top)) 0 10px;display:flex;justify-content:space-between;align-items:baseline}
+.brand{font-family:var(--display);font-weight:900;font-size:26px;letter-spacing:.04em;text-transform:uppercase}
+.brand b{color:var(--accent)}
+.date{color:var(--mute);font-size:14px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;margin:0 0 14px}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);font-weight:600}
+.hero{padding:20px 18px;border-color:#3a2a22;background:linear-gradient(160deg,#1e1814 0%,var(--surface) 60%)}
+.hero h2{font-size:64px;line-height:.95;font-weight:900;margin:6px 0 2px}
+.hero h2 span{color:var(--accent)}
+.hero .sub{font-size:18px;font-weight:600}
+.when{color:var(--mute);margin-top:4px}
+.when b{color:var(--text)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:54px;border-radius:14px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:17px;letter-spacing:.01em}
+.btn:active{transform:scale(.985)}
+.btn.ghost{background:var(--surface-2);color:var(--text);border:1px solid var(--line)}
+.btn.small{min-height:40px;font-size:14px;width:auto;padding:0 14px;border-radius:12px}
+.row{display:flex;gap:10px;align-items:center}
+.sp{flex:1}
+
+.preview{list-style:none;margin:14px 0 16px;padding:0;border-top:1px solid var(--line)}
+.preview li{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:15px}
+.preview li span:last-child{color:var(--mute);white-space:nowrap;font-variant-numeric:tabular-nums}
+
+.chips{display:flex;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap}
+.chip{min-width:44px;min-height:40px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);font-weight:700;color:var(--mute)}
+.chip[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:#25160f}
+
+/* session */
+.sbar{position:sticky;top:0;z-index:5;background:rgba(13,15,18,.94);backdrop-filter:blur(8px);padding:calc(10px + env(safe-area-inset-top)) 0 10px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.sbar .l1{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sbar h2{font-size:28px;font-weight:900}
+.sbar .meta{color:var(--mute);font-size:14px;font-variant-numeric:tabular-nums}
+.bar{height:6px;border-radius:3px;background:var(--surface-2);margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+
+.ex{padding:14px 14px 8px}
+.ex-h{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:8px}
+.ex-h h3{font-size:24px;font-weight:800;line-height:1.05}
+.ex-h .tgt{color:var(--accent);font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ex .last{color:var(--mute);font-size:13px;margin-bottom:8px}
+.set{display:grid;grid-template-columns:24px 1fr 1fr 52px;gap:8px;align-items:center;padding:6px 0}
+.set.nw{grid-template-columns:24px 1fr 52px}
+.set .n{color:var(--mute);font-weight:700;text-align:center;font-variant-numeric:tabular-nums}
+.f{position:relative;display:block}
+.f input{width:100%;height:48px;border-radius:12px;border:1px solid var(--line);background:var(--bg);padding:0 38px 0 12px;font-size:18px;font-weight:600;font-variant-numeric:tabular-nums}
+.f small{position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--mute);font-size:12px;pointer-events:none}
+.chk{width:52px;height:48px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);display:grid;place-items:center;color:var(--mute)}
+.chk svg{width:24px;height:24px;opacity:.35}
+.set.done .chk{background:var(--good);border-color:var(--good);color:#04230f}
+.set.done .chk svg{opacity:1}
+.set.done .f input{color:var(--mute);border-color:transparent;background:var(--surface-2)}
+.finish{margin:18px 0 8px}
+.link{color:var(--mute);text-decoration:underline;text-underline-offset:3px;font-size:14px}
+
+/* plan */
+.slot{display:flex;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}
+.slot:last-child{border-bottom:0}
+.slot .t{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-family:var(--display);font-weight:900;font-size:22px;background:#25160f;color:var(--accent)}
+.slot.yoga .t{background:var(--surface-2);color:var(--mute);font-size:15px}
+.slot .d{font-weight:600}
+.slot .s{color:var(--mute);font-size:13px}
+.plan h3{font-size:26px}
+.plan .head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
+.note{color:var(--mute);font-size:14px;margin:0}
+
+/* history */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px}
+.stat b{display:block;font-family:var(--display);font-size:34px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+.stat span{color:var(--mute);font-size:12px}
+.hist{width:100%;text-align:left;display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.hist:last-child{border-bottom:0}
+.hd{padding:0 0 12px 50px;color:var(--mute);font-size:14px}
+.hd div{display:flex;justify-content:space-between;gap:10px;padding:2px 0}
+.empty{color:var(--mute);text-align:center;padding:26px 8px}
+
+/* tabs */
+.tabs{position:fixed;left:0;right:0;bottom:0;background:rgba(13,15,18,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:20}
+.tabs div{max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr)}
+.tab{height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--mute);font-size:12px;font-weight:600}
+.tab svg{width:24px;height:24px}
+.tab[aria-current="page"]{color:var(--accent)}
+
+/* rest timer */
+.rest{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom));z-index:25;background:var(--text);color:#111;border-radius:999px;padding:8px 8px 8px 18px;display:none;align-items:center;gap:12px;box-shadow:0 8px 28px rgba(0,0,0,.5);font-weight:700;white-space:nowrap}
+.rest.on{display:flex}
+.rest .tm{font-family:var(--display);font-size:26px;font-weight:900;font-variant-numeric:tabular-nums;min-width:56px}
+.rest button{background:#111;color:#fff;border-radius:999px;height:36px;padding:0 14px;font-size:14px;font-weight:600}
+
+/* sheet */
+.veil{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:40;display:none}
+.veil.on{display:block}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;max-height:88%;overflow:auto;background:var(--surface);border-top:1px solid var(--line);border-radius:22px 22px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));display:none}
+.sheet.on{display:block}
+.sheet .in{max-width:480px;margin:0 auto}
+.sheet h3{font-size:30px;margin-bottom:10px}
+.sheet .btns{display:flex;gap:10px;margin-top:16px}
+.sheet .btns .btn{flex:1}
+.up{color:var(--good);font-weight:700}
+.sum{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)}
+
+/* editor */
+.ed{border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:10px;background:var(--bg)}
+.ed input[type=text]{width:100%;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--surface);padding:0 12px;font-weight:600}
+.edg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.edg label{font-size:11px;color:var(--mute);display:block}
+.edg input,.edg select{width:100%;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--surface);padding:0 8px}
+.edt{display:flex;gap:8px;margin-top:8px;align-items:center}
+.edt label.cb{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--mute)}
+.edt button{height:36px;min-width:40px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);font-weight:700}
+.sync{font-size:12px;color:var(--mute);text-align:center;margin:18px 0 0}
+.preview li.xr{display:block;padding:0}
+.xb{width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;text-align:left;font-size:15px}
+.xb .r{display:flex;align-items:center;gap:8px;color:var(--mute);white-space:nowrap;font-variant-numeric:tabular-nums}
+.xb svg,.xb2 svg{width:16px;height:16px;flex:none;transition:transform .2s}
+.xb[aria-expanded="true"] svg,.xb2[aria-expanded="true"] svg{transform:rotate(180deg)}
+.xb2{display:inline-flex;align-items:center;gap:8px;text-align:left;font-family:var(--display);font-size:24px;font-weight:800;text-transform:uppercase;line-height:1.05;letter-spacing:.02em}
+.xb2 svg{color:var(--accent)}
+.xp{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;margin:2px 0 12px;font-size:14px;color:var(--text)}
+.xp[hidden]{display:none}
+.xp p{margin:0 0 9px;line-height:1.45;color:var(--text)}
+.xp b{display:block;color:var(--accent);font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:1px}
+.xl{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+.xl a{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);color:var(--text);text-decoration:none;font-weight:600;font-size:14px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><div class="brand">Steffen's <b>Gym</b></div><div class="date" id="today"></div></div>
+  <main id="view"></main>
+</div>
+
+<div class="rest" id="rest" role="timer" aria-live="off"><span>Pause</span><span class="tm" id="restTm">1:30</span><button data-act="rest30">+30 s</button><button data-act="restStop">Weiter</button></div>
+
+<nav class="tabs" aria-label="Hauptmenü"><div>
+  <button class="tab" data-tab="heute"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5v11M17.5 6.5v11M3 9v6M21 9v6M6.5 12h11"/></svg>Training</button>
+  <button class="tab" data-tab="plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>Plan</button>
+  <button class="tab" data-tab="verlauf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16M8 15l4-4 3 3 5-6"/></svg>Verlauf</button>
+</div></nav>
+
+<input type="file" id="imp" accept="application/json,.json" hidden>
+<div class="veil" id="veil" data-act="closeSheet"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true"><div class="in" id="sheetIn"></div></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- Standardplan ---------- */
+function X(id,name,sets,lo,hi,inc,o){return Object.assign({id:id,name:name,sets:sets,lo:lo,hi:hi,w:true,u:"Wdh",inc:inc},o||{});}
+var DEF_PLAN={
+  A:{title:"Brust & Schulter",ex:[
+    X("bench","Flachbank Langhantel",4,6,8,2.5),
+    X("incdb","Schrägbank Kurzhanteln",3,8,10,2),
+    X("cfly","Kabelzug-Fliegende",3,12,15,2.5),
+    X("ohp","Schulterdrücken Kurzhanteln",3,8,10,2),
+    X("lat","Seitheben",3,12,15,1),
+    X("tri","Trizeps-Seilzug",3,10,12,2.5)]},
+  B:{title:"Rücken, Beine & Bauch",ex:[
+    X("squat","Kniebeuge oder Beinpresse",3,8,8,5),
+    X("rdl","Rumänisches Kreuzheben",3,8,10,5),
+    X("pull","Latzug oder Klimmzüge",3,8,10,2.5),
+    X("row","Rudern",3,8,10,2.5),
+    X("face","Face Pulls",3,15,15,2.5),
+    X("leg","Beinheben hängend",3,10,12,0,{w:false}),
+    X("crunch","Kabel-Crunch",3,12,15,2.5)]},
+  C:{title:"Brust 2, Arme & Bauch",ex:[
+    X("incbb","Schrägbank Langhantel",4,8,8,2.5),
+    X("dips","Dips oder Brustpresse",3,8,10,2.5),
+    X("pec","Butterfly",3,12,15,2.5),
+    X("curl","Bizeps-Curls",3,10,10,2),
+    X("skull","Skullcrushers",3,10,10,2),
+    X("rcurl","Reverse Curls (Unterarme)",3,12,12,1),
+    X("farm","Farmer's Walk (Unterarme)",3,40,40,2.5,{u:"m"}),
+    X("plank","Plank",3,45,60,0,{w:false,u:"Sek"})]}
+};
+var ORDER=["A","B","C"];
+
+/* ---------- Rhythmus ---------- */
+var BASE=Date.UTC(2026,11,11)/864e5; // erster Kinder-Freitag
+var START=Date.UTC(2026,11,1)/864e5; // epassi ab 01.12.2026
+function dayNum(d){return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);}
+function dow(n){return new Date(n*864e5).getUTCDay();}
+function kids(fri){return (((fri-BASE)%14)+14)%14===0;}
+function slotKind(n){var d=dow(n);
+  if(d===4)return "train";
+  if(d===5)return kids(n)?null:"train";
+  if(d===6)return kids(n-1)?null:"train";
+  if(d===1)return kids(n-3)?"train":"yoga";
+  return null;}
+function fmt(n,o){return new Intl.DateTimeFormat("de-DE",Object.assign({timeZone:"UTC"},o)).format(new Date(n*864e5));}
+function lab(n){var d=dow(n);return (d===6?"Sa oder So":fmt(n,{weekday:"short"}).replace(".",""))+", "+fmt(n,{day:"2-digit",month:"2-digit"})+".";}
+function rel(n,t){var d=n-t;if(d===0)return "heute";if(d===1)return "morgen";if(d<0)return "überfällig";return "in "+d+" Tagen";}
+
+/* ---------- Zustand ---------- */
+var state=null, ui={tab:"heute",pick:null,open:null};
+var LS="eisenplan-v1";
+function fresh(){return {v:1,ts:0,plan:JSON.parse(JSON.stringify(DEF_PLAN)),nextIdx:0,weights:{},session:null,history:[]};}
+function loadLocal(){try{var s=localStorage.getItem(LS);if(s){var o=JSON.parse(s);if(o&&o.plan)return o;}}catch(e){}return null;}
+state=loadLocal()||fresh();
+
+var docRef=null,saveT=null,cloudOk=false;
+function save(){
+  state.ts=Date.now();
+  try{localStorage.setItem(LS,JSON.stringify(state));}catch(e){}
+  if(docRef){clearTimeout(saveT);saveT=setTimeout(function(){
+    try{var p=docRef.set({json:JSON.stringify(state),ts:state.ts});if(p&&p.catch)p.catch(function(){});}catch(e){}
+  },700);}
+}
+async function cloudInit(){
+  try{
+    var cl=window.claude; if(!cl||!cl.use)return;
+    var user=await cl.use("user"); var db=await cl.use("db");
+    if(!user||!db)return;
+    var id=await user.id();
+    docRef=db.collection("data/users/"+id).doc("train");
+    var snap=await docRef.get();
+    var d=snap&&typeof snap.data==="function"?snap.data():snap;
+    cloudOk=true;
+    if(d&&d.json){
+      var o=JSON.parse(d.json);
+      if(o&&o.plan&&(o.ts||0)>(state.ts||0)){state=o;try{localStorage.setItem(LS,JSON.stringify(state));}catch(e){}render();}
+    }else if(state.ts){docRef.set({json:JSON.stringify(state),ts:state.ts});}
+    var s=document.getElementById("sync");if(s)s.textContent="Fortschritt wird gespeichert und geräteübergreifend gesichert.";
+  }catch(e){}
+}
+
+/* ---------- Helpers ---------- */
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function kg(n){return String(n).replace(".",",");}
+function num(v){var x=parseFloat(String(v).replace(",","."));return isNaN(x)?0:x;}
+function tgt(e){return e.sets+" × "+(e.lo===e.hi?e.lo:e.lo+"–"+e.hi)+(e.u==="Wdh"?"":" "+e.u);}
+function today(){return dayNum(new Date());}
+function doneToday(){var t=today();return state.history.some(function(h){return h.date===t;});}
+function upcoming(count){
+  var t=today(),n=Math.max(t,START),out=[],i=0,idx=state.nextIdx;
+  if(n===t&&doneToday())n++;
+  var guard=0;
+  while(out.length<count&&guard++<400){
+    var k=slotKind(n);
+    if(k==="train"){out.push({n:n,type:ORDER[(idx+i)%3],kind:"train"});i++;}
+    else if(k==="yoga"){out.push({n:n,kind:"yoga"});}
+    n++;
+  }
+  return out;
+}
+function nextTrain(){var u=upcoming(6).filter(function(x){return x.kind==="train";});return u[0];}
+function sessionCounts(){
+  var s=state.session,t=0,d=0;if(!s)return {t:0,d:0};
+  s.ex.forEach(function(e){(s.sets[e.id]||[]).forEach(function(x){t++;if(x.d)d++;});});
+  return {t:t,d:d};
+}
+var CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+
+/* ---------- Startgewichte (vorsichtig, bis eigene Werte da sind) ---------- */
+var STARTW={
+bench:{kg:40,h:"Stange 20 kg + 10 kg je Seite"},
+incdb:{kg:14,h:"je Hand"},
+cfly:{kg:10,h:"je Seite am Kabelzug"},
+ohp:{kg:12,h:"je Hand"},
+lat:{kg:6,h:"je Hand"},
+tri:{kg:20,h:"am Seilzug"},
+squat:{kg:40,h:"Langhantel gesamt, an der Beinpresse etwa 80 kg"},
+rdl:{kg:40,h:"Langhantel gesamt"},
+pull:{kg:50,h:"am Latzug"},
+row:{kg:40,h:"am Gerät"},
+face:{kg:15,h:"am Kabelzug, leicht"},
+crunch:{kg:25,h:"am Kabelzug"},
+incbb:{kg:30,h:"Stange 20 kg + 5 kg je Seite"},
+dips:{kg:0,h:"nur Körpergewicht"},
+pec:{kg:30,h:"am Gerät"},
+curl:{kg:10,h:"je Hand"},
+skull:{kg:20,h:"SZ-Stange gesamt"},
+rcurl:{kg:15,h:"SZ-Stange gesamt"},
+farm:{kg:20,h:"je Hand"}
+};
+/* ---------- Übungsbeschreibungen ---------- */
+var GUIDE={
+bench:{gear:"Flachbank mit Rack: Du liegst auf dem Rücken, die Langhantel liegt über deinen Augen in den Haken.",how:"Füße fest auf den Boden, Schulterblätter zusammen- und nach unten ziehen. Stange kontrolliert zur unteren Brust senken, Ellbogen etwa 45° zum Körper, dann kräftig nach oben drücken.",tip:"Schulterblätter und Gesäß bleiben auf der Bank. Beim ersten Mal mit leerer Stange (20 kg) üben und die Sicherheitshaken nutzen.",mus:"Brust, vordere Schulter, Trizeps",q:"Bankdrücken Langhantel Flachbank Ausführung"},
+incdb:{gear:"Verstellbare Bank, auf etwa 30° Neigung gestellt, dazu zwei Kurzhanteln.",how:"Hanteln auf die Oberschenkel legen und mit dem Hinlegen nach oben bringen. Schulterblätter fixieren, Hanteln neben der oberen Brust absenken und in leichtem Bogen nach oben drücken.",tip:"Nicht steiler als 30 bis 45°, sonst übernimmt die Schulter. Oben die Arme nicht hart durchstrecken.",mus:"Obere Brust, vordere Schulter, Trizeps",q:"Schrägbankdrücken Kurzhantel Ausführung"},
+cfly:{gear:"Kabelzug-Turm (Cable Crossover): zwei Griffe an Rollen links und rechts auf Schulterhöhe oder höher.",how:"Griffe greifen, einen Schritt nach vorn, Oberkörper leicht vorbeugen. Mit leicht gebeugten Armen die Hände in einem Bogen vor der Brust zusammenführen, kurz halten, kontrolliert zurück.",tip:"Der Ellbogenwinkel bleibt gleich, die Bewegung kommt aus der Schulter. Hinten nicht zu weit dehnen.",mus:"Brust (Innenseite)",q:"Kabelzug Fliegende Cable Crossover Ausführung"},
+ohp:{gear:"Bank mit fast aufrechter Lehne (80 bis 90°) und zwei Kurzhanteln.",how:"Hanteln auf Schulterhöhe, Handflächen nach vorn. Gerade nach oben drücken, bis die Arme fast gestreckt sind, dann kontrolliert auf Ohrhöhe absenken.",tip:"Kein starkes Hohlkreuz, Bauch anspannen, Rücken bleibt an der Lehne.",mus:"Schultern, Trizeps",q:"Schulterdrücken Kurzhanteln sitzend Ausführung"},
+lat:{gear:"Zwei leichte Kurzhanteln, im Stehen.",how:"Arme leicht gebeugt neben dem Körper, Hanteln seitlich bis auf Schulterhöhe heben, oben kurz halten, langsam senken.",tip:"Leichtes Gewicht, kein Schwung aus dem Rücken. Nicht höher als Schulterhöhe.",mus:"Seitliche Schulter",q:"Seitheben Kurzhanteln Ausführung"},
+tri:{gear:"Kabelzug mit Seil-Aufsatz an einer hohen Rolle.",how:"Seil an beiden Enden greifen, Ellbogen eng an die Rippen. Arme nach unten durchstrecken, Seilenden unten leicht auseinanderziehen, langsam zurück bis etwa 90°.",tip:"Ellbogen bleiben am Körper und wandern nicht nach vorn. Oberkörper ruhig halten.",mus:"Trizeps",q:"Trizepsdrücken Seilzug Ausführung"},
+squat:{gear:"Kniebeuge: Squat Rack mit Langhantel. Beinpresse: Sitz-Gerät, bei dem du eine Platte mit den Füßen wegdrückst. Für den Einstieg ist die Beinpresse einfacher und sicherer.",how:"Kniebeuge: Stange auf dem oberen Rücken, schulterbreit stehen, Hüfte nach hinten und unten, bis die Oberschenkel mindestens parallel zum Boden sind, dann hochdrücken. Beinpresse: Füße schulterbreit auf die Platte, Knie bis etwa 90° beugen, wieder strecken.",tip:"Knie folgen den Fußspitzen, Rücken bleibt gerade, Fersen am Boden. Beinpresse: Becken bleibt am Polster, Knie oben nicht durchdrücken.",mus:"Oberschenkel, Gesäß, unterer Rücken",q:"Kniebeuge Langhantel Ausführung Beinpresse"},
+rdl:{gear:"Langhantel oder zwei Kurzhanteln, im Stehen.",how:"Hüftbreit stehen, Gewicht vor den Oberschenkeln. Knie nur leicht beugen, Hüfte weit nach hinten schieben, Gewicht nah am Bein bis zur Schienbeinmitte senken, dann Hüfte nach vorn und aufrichten.",tip:"Rücken bleibt gerade, Blick nach vorn unten. Du spürst die Dehnung hinten am Oberschenkel, das Kreuz soll nicht ziehen.",mus:"Hintere Oberschenkel, Gesäß, unterer Rücken",q:"Rumänisches Kreuzheben Ausführung"},
+pull:{gear:"Latzug-Maschine: Sitz mit Polster über den Oberschenkeln, oben eine Stange an einem Seilzug. Alternativ eine Klimmzugstange.",how:"Stange etwas weiter als schulterbreit greifen, Brust raus, Stange zur oberen Brust ziehen und die Ellbogen nach unten und hinten führen, oben kurz halten, langsam zurück.",tip:"Nicht wild zurücklehnen und nicht hinter den Nacken ziehen. Die Bewegung beginnt mit den Schulterblättern.",mus:"Breiter Rückenmuskel, Bizeps",q:"Latzug Ausführung Maschine"},
+row:{gear:"Sitzrudern-Maschine (Brustpolster, Griffe vor dir) oder Kabelrudern mit V-Griff.",how:"Aufrecht hinsetzen, Brust ans Polster. Griffe zum Bauch ziehen und die Schulterblätter zusammendrücken, kurz halten, langsam zurück.",tip:"Nicht mit dem Rücken schwingen, Schultern bleiben unten und wandern nicht zu den Ohren.",mus:"Mittlerer Rücken, hintere Schulter, Bizeps",q:"Rudern sitzend Kabelzug Ausführung"},
+face:{gear:"Kabelzug mit Seil-Aufsatz, Rolle etwa auf Gesichtshöhe.",how:"Seil an den Enden greifen, einen Schritt zurück. Seil zum Gesicht ziehen, die Hände trennen sich auf Ohrhöhe, Ellbogen hoch, Schulterblätter zusammen, langsam zurück.",tip:"Leichtes Gewicht, saubere Technik. Gut für gesunde Schultern, gerade neben viel Brusttraining.",mus:"Hintere Schulter, oberer Rücken",q:"Face Pulls Ausführung Kabelzug"},
+leg:{gear:"Klimmzugstange oder ein Hang-Gerät mit Unterarmstützen (Captain's Chair).",how:"Hängen oder aufstützen. Beine gestreckt oder angewinkelt mindestens bis auf Hüfthöhe heben, Becken leicht einrollen, langsam wieder absenken.",tip:"Nicht schwingen. Zu schwer? Dann nur die Knie anziehen statt die Beine zu strecken.",mus:"Gerade Bauchmuskeln (unten), Hüftbeuger",q:"Hängendes Beinheben Ausführung"},
+crunch:{gear:"Kabelzug mit Seil an der hohen Rolle, du kniest davor.",how:"Seil neben den Kopf halten und hinknien. Wirbelsäule einrollen und die Ellbogen Richtung Oberschenkel ziehen, kurz anspannen, langsam zurück.",tip:"Die Kraft kommt aus dem Bauch, nicht aus den Armen. Die Hüfte bleibt ruhig.",mus:"Gerade Bauchmuskeln",q:"Kabel Crunch kniend Ausführung"},
+incbb:{gear:"Schrägbank (etwa 30°) mit Rack für die Langhantel.",how:"Wie beim Bankdrücken: Schulterblätter fixieren, Stange zur oberen Brust senken, nach oben drücken.",tip:"Nicht zu steil einstellen. Sicherheitshaken oder Spotter nutzen.",mus:"Obere Brust, vordere Schulter, Trizeps",q:"Schrägbankdrücken Langhantel Ausführung"},
+dips:{gear:"Dip-Station (zwei parallele Griffe, du hängst frei) oder Dip- bzw. Brustpresse-Maschine mit Sitz und Griffen.",how:"Dip-Station: aufstützen, Oberkörper leicht nach vorn, Ellbogen bis etwa 90° beugen, hochdrücken. Maschine: Griffe nach unten oder nach vorn drücken.",tip:"Für die Brust den Oberkörper nach vorn neigen. Schultern nicht zu den Ohren ziehen. Anfangs lieber die Brustpresse nehmen.",mus:"Untere Brust, Trizeps, vordere Schulter",q:"Dips Brust Ausführung"},
+pec:{gear:"Butterfly-Maschine (Pec Deck): Sitz mit Rückenlehne, links und rechts je ein Arm mit Polster oder Griff.",how:"Rücken an die Lehne, Arme auf Brusthöhe, Griffe im Bogen vor der Brust zusammenführen, kurz halten, langsam zurück.",tip:"Nicht zu weit nach hinten dehnen, Schultern bleiben unten. Gewicht so wählen, dass du die Brust spürst.",mus:"Brust (Innenseite)",q:"Butterfly Maschine Brust Ausführung"},
+curl:{gear:"Kurzhanteln oder SZ-Stange (gebogene Langhantel).",how:"Aufrecht stehen, Ellbogen am Körper. Gewicht nach oben curlen, oben kurz anspannen, langsam absenken.",tip:"Kein Schwung aus dem Rücken, Ellbogen bleiben vorn am Körper.",mus:"Bizeps, Unterarm",q:"Bizeps Curls Kurzhantel Ausführung"},
+skull:{gear:"Flachbank mit SZ-Stange oder zwei Kurzhanteln.",how:"Rücklings liegen, Gewicht über der Brust. Nur die Unterarme beugen und das Gewicht Richtung Stirn senken, dann wieder strecken.",tip:"Ellbogen zeigen zur Decke und bleiben eng. Mit leichtem Gewicht beginnen, die Ellbogen mögen das nicht.",mus:"Trizeps",q:"Skullcrushers SZ-Stange Ausführung"},
+rcurl:{gear:"SZ-Stange oder Kurzhanteln.",how:"Wie ein Bizeps-Curl, aber mit Handrücken nach oben (Obergriff). Ellbogen am Körper, Gewicht nach oben curlen und langsam senken.",tip:"Sehr leichtes Gewicht, Handgelenke gerade halten.",mus:"Unterarm-Außenseite, Oberarmmuskel",q:"Reverse Curls Ausführung"},
+farm:{gear:"Zwei schwere Kurzhanteln oder Kettlebells und eine freie Strecke von etwa 20 m.",how:"Gewichte neben dem Körper aufnehmen, aufrecht stehen, Schultern zurück und unten. Kurze, feste Schritte gehen, nach 40 m abstellen.",tip:"Gerader Rücken, fester Griff, nicht zur Seite hängen. Die Unterarme brennen, das ist gewollt.",mus:"Unterarm, Griffkraft, Trapez, Rumpf",q:"Farmers Walk Ausführung"},
+plank:{gear:"Nur eine Matte, kein Gerät.",how:"Auf die Unterarme stützen, Ellbogen unter den Schultern. Körper bildet eine gerade Linie von Kopf bis Ferse, Bauch und Gesäß anspannen, ruhig atmen und halten.",tip:"Hüfte nicht durchhängen lassen und nicht hochschieben. Lieber kürzer, dafür sauber.",mus:"Gesamter Rumpf, Bauch",q:"Plank Unterarmstütz Ausführung"}
+};
+var CHEV='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+function xinfo(e){
+  var g=GUIDE[e.id],q=encodeURIComponent((g&&g.q)||(e.name+" Ausführung"));
+  var h='<div class="xp" hidden>';
+  if(g)h+='<p><b>Gerät</b>'+g.gear+'</p><p><b>So geht\'s</b>'+g.how+'</p><p><b>Achte auf</b>'+g.tip+'</p><p><b>Trainiert</b>'+g.mus+'</p>';
+  else h+='<p>Für diese Übung gibt es noch keine Beschreibung. Über die Links findest du Bilder und Videos.</p>';
+  h+='<div class="xl"><a href="https://www.google.com/search?tbm=isch&q='+q+'" target="_blank" rel="noopener">Bilder ansehen</a><a href="https://www.youtube.com/results?search_query='+q+'" target="_blank" rel="noopener">Video ansehen</a></div></div>';
+  return h;
+}
+function exRows(list){
+  return list.map(function(e){
+    return '<li class="xr"><button class="xb" data-act="info" aria-expanded="false"><span>'+esc(e.name)+'</span><span class="r"><span>'+tgt(e)+'</span>'+CHEV+'</span></button>'+xinfo(e)+'</li>';
+  }).join("");
+}
+
+/* ---------- Render ---------- */
+function render(){
+  document.getElementById("today").textContent=fmt(today(),{weekday:"long",day:"numeric",month:"long"});
+  document.querySelectorAll(".tab").forEach(function(b){b.setAttribute("aria-current",b.dataset.tab===ui.tab?"page":"false");});
+  var v=document.getElementById("view");
+  v.innerHTML=ui.tab==="heute"?viewHeute():ui.tab==="plan"?viewPlan():viewVerlauf();
+  if(ui.tab==="heute"&&state.session)updateProgress();
+}
+
+function viewHeute(){
+  if(state.session)return viewSession();
+  var nt=nextTrain();
+  var type=ui.pick||(nt?nt.type:ORDER[state.nextIdx%3]);
+  var p=state.plan[type];
+  var h='<section class="card hero"><div class="eyebrow">'+(nt&&nt.n===today()?"Heute dran":"Als Nächstes")+'</div>'+
+    '<h2>Einheit <span>'+type+'</span></h2><div class="sub">'+esc(p.title)+'</div>'+
+    '<div class="when">'+(nt?'<b>'+lab(nt.n)+'</b> · '+rel(nt.n,today()):'')+'</div>'+
+    '<ul class="preview">'+exRows(p.ex)+'</ul>'+
+    '<button class="btn" data-act="start" data-type="'+type+'">Training starten</button>'+
+    '<div class="chips"><span class="eyebrow">Andere Einheit</span><span class="sp"></span>'+
+    ORDER.map(function(t){return '<button class="chip" data-act="pick" data-type="'+t+'" aria-pressed="'+(t===type)+'">'+t+'</button>';}).join("")+'</div></section>';
+  var up=upcoming(5).filter(function(x){return x.kind==="train";}).slice(1,4);
+  h+='<section class="card"><div class="eyebrow">Danach</div>'+up.map(function(x,i){return '<div class="slot"><div class="t">'+x.type+'</div><div><div class="d">'+lab(x.n)+'</div><div class="s">'+esc(state.plan[x.type].title)+'</div></div></div>';}).join("")+'</section>';
+  h+='<p class="sync" id="sync">'+(cloudOk?"Fortschritt wird gespeichert und geräteübergreifend gesichert.":"Fortschritt wird auf diesem Gerät gespeichert. Sicherung unter „Plan“.")+'</p>';
+  return h;
+}
+
+function viewSession(){
+  var s=state.session,h='';
+  h+='<div class="sbar"><div class="l1"><h2>Einheit '+s.type+'</h2><span class="meta" id="smeta"></span></div><div class="bar"><i id="sbar"></i></div></div>';
+  s.ex.forEach(function(e){
+    var last=state.weights[e.id];
+    h+='<section class="card ex" data-exc="'+e.id+'"><div class="ex-h"><h3><button class="xb2" data-act="info" aria-expanded="false">'+esc(e.name)+CHEV+'</button></h3><span class="tgt">'+tgt(e)+'</span></div>';
+    if(e.w)h+='<div class="last">'+(last?'Letztes Mal: '+kg(last)+' kg':(STARTW[e.id]?'Startvorschlag: '+(STARTW[e.id].kg?kg(STARTW[e.id].kg)+' kg':'Körpergewicht')+' · '+STARTW[e.id].h:'Noch kein Gewicht gespeichert'))+'</div>';
+    h+=xinfo(e);
+    (s.sets[e.id]||[]).forEach(function(x,i){
+      h+='<div class="set'+(e.w?'':' nw')+(x.d?' done':'')+'" data-ex="'+e.id+'" data-i="'+i+'"><span class="n">'+(i+1)+'</span>'+
+        (e.w?'<label class="f"><input inputmode="decimal" data-f="kg" value="'+(x.kg===""?"":kg(x.kg))+'" placeholder="0" aria-label="Gewicht Satz '+(i+1)+'"><small>kg</small></label>':'')+
+        '<label class="f"><input inputmode="numeric" data-f="r" value="'+x.r+'" aria-label="'+e.u+' Satz '+(i+1)+'"><small>'+e.u+'</small></label>'+
+        '<button class="chk" data-act="chk" aria-label="Satz '+(i+1)+' erledigt">'+CHECK+'</button></div>';
+    });
+    h+='</section>';
+  });
+  h+='<div class="finish"><button class="btn" data-act="finish" id="finBtn">Training abschließen</button></div>'+
+     '<p class="sync"><button class="link" data-act="abort">Einheit verwerfen</button></p>';
+  return h;
+}
+
+function updateProgress(){
+  var c=sessionCounts(),s=state.session;if(!s)return;
+  var b=document.getElementById("sbar");if(b)b.style.width=(c.t?c.d/c.t*100:0)+"%";
+  var m=document.getElementById("smeta");
+  if(m){var min=Math.max(0,Math.round((Date.now()-s.start)/60000));m.textContent=c.d+"/"+c.t+" Sätze · "+min+" min";}
+  var f=document.getElementById("finBtn");
+  if(f)f.textContent=c.d===c.t?"Training abschließen":"Abschließen ("+(c.t-c.d)+" offen)";
+}
+
+function viewPlan(){
+  var up=upcoming(9);
+  var h='<section class="card"><div class="eyebrow">Deine nächsten Termine</div>'+
+    up.map(function(x){
+      if(x.kind==="yoga")return '<div class="slot yoga"><div class="t">Yo</div><div><div class="d">'+lab(x.n)+'</div><div class="s">Yoga (optional)</div></div></div>';
+      return '<div class="slot"><div class="t">'+x.type+'</div><div><div class="d">'+lab(x.n)+'</div><div class="s">'+esc(state.plan[x.type].title)+'</div></div></div>';
+    }).join("")+
+    '<p class="note" style="margin-top:10px">Kinder-Wochenende von Freitag bis Montag: kein Training. Die Einheiten laufen der Reihe nach A, B, C und es geht immer mit der nächsten weiter.</p></section>';
+  ORDER.forEach(function(t){
+    var p=state.plan[t];
+    h+='<section class="card plan"><div class="head"><h3>Einheit '+t+'</h3><button class="btn ghost small" data-act="edit" data-type="'+t+'">Bearbeiten</button></div>'+
+      '<div class="note" style="color:var(--text);font-weight:600">'+esc(p.title)+'</div>'+
+      '<ul class="preview">'+exRows(p.ex)+'</ul></section>';
+  });
+  h+='<p class="sync"><button class="link" data-act="resetPlan">Plan auf Standard zurücksetzen</button></p><p class="sync"><button class="link" data-act="export">Sicherung speichern</button> · <button class="link" data-act="import">Sicherung einspielen</button></p>';
+  return h;
+}
+
+function viewVerlauf(){
+  var H=state.history.slice().reverse();
+  var t=today(),wk=t-((dow(t)+6)%7);
+  var week=H.filter(function(x){return x.date>=wk;}).length;
+  var vol=H.reduce(function(a,x){return a+(x.vol||0);},0);
+  var h='<div class="stats"><div class="stat"><b>'+H.length+'</b><span>Einheiten</span></div><div class="stat"><b>'+week+'</b><span>diese Woche</span></div><div class="stat"><b>'+(vol/1000).toFixed(1).replace(".",",")+'</b><span>Tonnen bewegt</span></div></div>';
+  if(!H.length)return h+'<div class="card empty">Noch keine Einheit. Nach dem ersten Training siehst du hier jeden Satz und deine Steigerung.</div>';
+  h+='<section class="card">'+H.map(function(x){
+    var o=ui.open===x.id;
+    return '<button class="hist" data-act="hist" data-id="'+x.id+'"><div class="slot" style="border:0;padding:0;flex:1"><div class="t">'+x.type+'</div><div><div class="d">'+lab(x.date)+'</div><div class="s">'+esc(x.title)+' · '+x.dur+' min · '+Math.round(x.vol||0)+' kg</div></div></div></button>'+
+      (o?'<div class="hd">'+x.ex.map(function(e){return '<div><span>'+esc(e.name)+'</span><span>'+e.sets.map(function(s){return (e.w&&s.kg?kg(s.kg)+"×":"")+s.r;}).join(" · ")+'</span></div>';}).join("")+'</div>':'');
+  }).join("")+'</section>';
+  h+='<p class="sync"><button class="link" data-act="wipe">Verlauf komplett löschen</button></p>';
+  return h;
+}
+
+/* ---------- Sheet ---------- */
+function openSheet(html){document.getElementById("sheetIn").innerHTML=html;document.getElementById("sheet").classList.add("on");document.getElementById("veil").classList.add("on");}
+function closeSheet(){document.getElementById("sheet").classList.remove("on");document.getElementById("veil").classList.remove("on");}
+
+function editorHtml(t){
+  var p=state.plan[t];
+  return '<h3>Einheit '+t+' bearbeiten</h3>'+
+    '<input type="text" id="ptitle" value="'+esc(p.title)+'" aria-label="Titel" style="width:100%;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--bg);padding:0 12px;margin-bottom:12px;font-weight:600">'+
+    p.ex.map(function(e,i){
+      return '<div class="ed" data-i="'+i+'"><input type="text" data-e="name" value="'+esc(e.name)+'" aria-label="Übung">'+
+      '<div class="edg"><div><label>Sätze</label><input inputmode="numeric" data-e="sets" value="'+e.sets+'"></div>'+
+      '<div><label>Wdh von</label><input inputmode="numeric" data-e="lo" value="'+e.lo+'"></div>'+
+      '<div><label>Wdh bis</label><input inputmode="numeric" data-e="hi" value="'+e.hi+'"></div>'+
+      '<div><label>+ kg</label><input inputmode="decimal" data-e="inc" value="'+kg(e.inc)+'"></div></div>'+
+      '<div class="edt"><label class="cb"><input type="checkbox" data-e="w"'+(e.w?' checked':'')+'> mit Gewicht</label>'+
+      '<select data-e="u" aria-label="Einheit"><option'+(e.u==="Wdh"?" selected":"")+'>Wdh</option><option'+(e.u==="Sek"?" selected":"")+'>Sek</option><option'+(e.u==="m"?" selected":"")+'>m</option></select><span class="sp"></span>'+
+      '<button data-act="exUp" aria-label="nach oben">↑</button><button data-act="exDown" aria-label="nach unten">↓</button><button data-act="exDel" aria-label="löschen">✕</button></div></div>';
+    }).join("")+
+    '<button class="btn ghost" data-act="exAdd">+ Übung hinzufügen</button>'+
+    '<div class="btns"><button class="btn" data-act="closeSheet">Fertig</button></div>';
+}
+
+/* ---------- Rest timer ---------- */
+var restEnd=0,restI=null;
+var actx=null;
+function unlock(){try{var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;actx=actx||new AC();if(actx.state==="suspended")actx.resume();}catch(e){}}
+function beep(at,freq,len){
+  try{
+    var o=actx.createOscillator(),g=actx.createGain(),t=actx.currentTime+at;
+    o.type="sine";o.frequency.value=freq;
+    g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.9,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+len);
+    o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+len+0.05);
+  }catch(e){}
+}
+function alarm(){
+  try{if(actx&&actx.state==="suspended")actx.resume();}catch(e){}
+  if(actx){beep(0,880,0.25);beep(0.35,880,0.25);beep(0.7,1175,0.5);}
+  try{if(navigator.vibrate)navigator.vibrate([300,150,300,150,600]);}catch(e){}
+}
+function restStart(sec){unlock();restEnd=Date.now()+sec*1000;document.getElementById("rest").classList.add("on");clearInterval(restI);restI=setInterval(restTick,250);restTick();}
+function restTick(){
+  if(!restEnd)return;
+  var l=Math.ceil((restEnd-Date.now())/1000);
+  if(l<=0){restStop();alarm();return;}
+  document.getElementById("restTm").textContent=Math.floor(l/60)+":"+String(l%60).padStart(2,"0");
+}
+function restStop(){restEnd=0;clearInterval(restI);document.getElementById("rest").classList.remove("on");}
+
+/* ---------- Aktionen ---------- */
+var wl=null;
+async function lockScreen(){try{if(navigator.wakeLock&&state.session&&!wl){wl=await navigator.wakeLock.request("screen");wl.addEventListener("release",function(){wl=null;});}}catch(e){}}
+function unlockScreen(){try{if(wl)wl.release();}catch(e){}wl=null;}
+function startSession(type){
+  var ex=JSON.parse(JSON.stringify(state.plan[type].ex)),sets={};
+  ex.forEach(function(e){sets[e.id]=[];for(var i=0;i<e.sets;i++)sets[e.id].push({kg:e.w?(state.weights[e.id]||(STARTW[e.id]?STARTW[e.id].kg:"")):"",r:e.hi,d:false});});
+  state.session={type:type,start:Date.now(),ex:ex,sets:sets};
+  ui.pick=null;save();render();window.scrollTo(0,0);lockScreen();
+}
+function finishSession(){
+  var s=state.session,vol=0,ups=[],entry=[];
+  s.ex.forEach(function(e){
+    var done=(s.sets[e.id]||[]).filter(function(x){return x.d;});
+    if(!done.length)return;
+    done.forEach(function(x){if(e.w)vol+=num(x.kg)*num(x.r);});
+    entry.push({name:e.name,w:e.w,sets:done.map(function(x){return {kg:num(x.kg),r:num(x.r)};})});
+    if(e.w){
+      var all=done.length===(s.sets[e.id]||[]).length&&done.every(function(x){return num(x.r)>=e.hi;});
+      var top=Math.max.apply(null,done.map(function(x){return num(x.kg);}));
+      if(top>0){
+        if(all&&e.inc>0){state.weights[e.id]=Math.round((top+e.inc)*100)/100;ups.push({name:e.name,kg:state.weights[e.id]});}
+        else state.weights[e.id]=top;
+      }
+    }
+  });
+  var dur=Math.max(1,Math.round((Date.now()-s.start)/60000));
+  state.history.push({id:"h"+Date.now(),date:today(),type:s.type,title:state.plan[s.type].title,dur:dur,vol:vol,ex:entry});
+  state.nextIdx=(ORDER.indexOf(s.type)+1)%3;
+  state.session=null;ui.pick=null;restStop();unlockScreen();save();
+  var nx=nextTrain();
+  openSheet('<h3>Geschafft</h3><div class="sum"><span>Dauer</span><b>'+dur+' min</b></div><div class="sum"><span>Bewegtes Gewicht</span><b>'+Math.round(vol).toLocaleString("de-DE")+' kg</b></div>'+
+    (ups.length?'<div class="eyebrow" style="margin-top:14px">Nächstes Mal mehr Gewicht</div>'+ups.map(function(u){return '<div class="sum"><span>'+esc(u.name)+'</span><b class="up">'+kg(u.kg)+' kg ↑</b></div>';}).join(""):'<p class="note" style="margin-top:12px">Schaffst du bei allen Sätzen die obere Wiederholungszahl, schlägt die App dir höheres Gewicht vor.</p>')+
+    (nx?'<p class="note" style="margin-top:12px">Nächster Termin: <b style="color:var(--text)">'+lab(nx.n)+'</b>, Einheit '+nx.type+'.</p>':'')+
+    '<div class="btns"><button class="btn" data-act="closeSheet">Super</button></div>');
+  render();window.scrollTo(0,0);
+}
+
+function setTab(t){ui.tab=t;render();window.scrollTo(0,0);}
+function curEdit(){return state.plan[ui.edit];}
+
+document.addEventListener("click",function(ev){
+  var tb=ev.target.closest(".tab");
+  if(tb){var t=tb.dataset.tab;try{history.replaceState(null,"","#"+t);}catch(e){}setTab(t);return;}
+  var el=ev.target.closest("[data-act]");if(!el)return;
+  var a=el.dataset.act;
+  if(a==="closeSheet"){closeSheet();render();}
+  else if(a==="info"){var box=el.closest("li.xr,.ex"),pn=box.querySelector(".xp");pn.hidden=!pn.hidden;el.setAttribute("aria-expanded",String(!pn.hidden));}
+  else if(a==="pick"){ui.pick=el.dataset.type;render();}
+  else if(a==="start")startSession(el.dataset.type);
+  else if(a==="chk"){
+    var row=el.closest(".set"),id=row.dataset.ex,i=+row.dataset.i,x=state.session.sets[id][i];
+    x.d=!x.d;row.classList.toggle("done",x.d);
+    if(x.d)restStart(90);else restStop();
+    save();updateProgress();
+  }
+  else if(a==="finish"){
+    var c=sessionCounts();
+    if(c.d===0){openSheet('<h3>Noch nichts abgehakt</h3><p class="note">Hake mindestens einen Satz ab, bevor du die Einheit abschließt.</p><div class="btns"><button class="btn" data-act="closeSheet">OK</button></div>');}
+    else if(c.d<c.t){openSheet('<h3>Jetzt beenden?</h3><p class="note">'+(c.t-c.d)+' Sätze sind noch offen. Nur abgehakte Sätze werden gespeichert.</p><div class="btns"><button class="btn ghost" data-act="closeSheet">Weiter</button><button class="btn" data-act="finishNow">Beenden</button></div>');}
+    else finishSession();
+  }
+  else if(a==="finishNow"){closeSheet();finishSession();}
+  else if(a==="abort"){openSheet('<h3>Einheit verwerfen?</h3><p class="note">Alles, was du in dieser Einheit eingetragen hast, geht verloren.</p><div class="btns"><button class="btn ghost" data-act="closeSheet">Zurück</button><button class="btn" data-act="abortNow">Verwerfen</button></div>');}
+  else if(a==="abortNow"){state.session=null;restStop();unlockScreen();save();closeSheet();render();}
+  else if(a==="rest30"){restEnd+=30000;restTick();}
+  else if(a==="restStop")restStop();
+  else if(a==="hist"){ui.open=ui.open===el.dataset.id?null:el.dataset.id;render();}
+  else if(a==="edit"){ui.edit=el.dataset.type;openSheet(editorHtml(ui.edit));}
+  else if(a==="exAdd"){curEdit().ex.push(X("x"+Date.now(),"Neue Übung",3,8,12,2.5));save();openSheet(editorHtml(ui.edit));}
+  else if(a==="exDel"||a==="exUp"||a==="exDown"){
+    var i2=+el.closest(".ed").dataset.i,L=curEdit().ex;
+    if(a==="exDel")L.splice(i2,1);
+    else{var j=a==="exUp"?i2-1:i2+1;if(j>=0&&j<L.length){var tmp=L[i2];L[i2]=L[j];L[j]=tmp;}}
+    save();openSheet(editorHtml(ui.edit));
+  }
+  else if(a==="resetPlan"){openSheet('<h3>Plan zurücksetzen?</h3><p class="note">Die drei Einheiten gehen zurück auf den Standardplan. Dein Verlauf bleibt erhalten.</p><div class="btns"><button class="btn ghost" data-act="closeSheet">Abbrechen</button><button class="btn" data-act="resetNow">Zurücksetzen</button></div>');}
+  else if(a==="wipe"){openSheet('<h3>Verlauf löschen?</h3><p class="note">Alle Einheiten, gemerkten Gewichte und die Reihenfolge gehen auf Anfang zurück (nächste Einheit ist wieder A). Dein bearbeiteter Plan bleibt erhalten.</p><div class="btns"><button class="btn ghost" data-act="closeSheet">Abbrechen</button><button class="btn" data-act="wipeNow">Löschen</button></div>');}
+  else if(a==="wipeNow"){state.history=[];state.weights={};state.nextIdx=0;state.session=null;ui.open=null;restStop();save();closeSheet();render();}
+  else if(a==="export"){
+    try{var blob=new Blob([JSON.stringify(state)],{type:"application/json"}),u=URL.createObjectURL(blob),an=document.createElement("a");an.href=u;an.download="steffens-gym-sicherung.json";document.body.appendChild(an);an.click();an.remove();setTimeout(function(){URL.revokeObjectURL(u);},2000);}catch(e){}
+  }
+  else if(a==="import"){document.getElementById("imp").click();}
+  else if(a==="resetNow"){state.plan=JSON.parse(JSON.stringify(DEF_PLAN));save();closeSheet();render();}
+});
+
+document.addEventListener("input",function(ev){
+  var t=ev.target;
+  if(t.id==="ptitle"){curEdit().title=t.value;save();return;}
+  if(t.dataset.e){
+    var i=+t.closest(".ed").dataset.i,e=curEdit().ex[i],k=t.dataset.e;
+    if(k==="name")e.name=t.value;
+    else if(k==="w")e.w=t.checked;
+    else if(k==="u")e.u=t.value;
+    else if(k==="inc")e.inc=num(t.value);
+    else{var n=Math.max(1,Math.round(num(t.value)));e[k]=n;}
+    save();return;
+  }
+  if(t.dataset.f&&state.session){
+    var row=t.closest(".set"),x=state.session.sets[row.dataset.ex][+row.dataset.i];
+    x[t.dataset.f]=t.dataset.f==="kg"?(t.value===""?"":num(t.value)):num(t.value);
+    save();
+  }
+});
+document.getElementById("imp").addEventListener("change",function(ev){
+  var f=ev.target.files&&ev.target.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(){
+    try{var o=JSON.parse(r.result);if(!o||!o.plan||!Array.isArray(o.history))throw 0;state=o;save();render();openSheet('<h3>Sicherung eingespielt</h3><p class="note">Plan, Verlauf und Gewichte sind wieder da.</p><div class="btns"><button class="btn" data-act="closeSheet">OK</button></div>');}
+    catch(e){openSheet('<h3>Datei nicht lesbar</h3><p class="note">Das ist keine Sicherung von Steffen\'s Gym.</p><div class="btns"><button class="btn" data-act="closeSheet">OK</button></div>');}
+    ev.target.value="";
+  };
+  r.readAsText(f);
+});
+document.addEventListener("focusin",function(ev){if(ev.target.matches&&ev.target.matches(".set input"))ev.target.select&&ev.target.select();});
+
+function fromHash(){var h=(location.hash||"").slice(1);ui.tab=(h==="plan"||h==="verlauf")?h:"heute";}
+document.addEventListener("visibilitychange",function(){if(!document.hidden){if(restEnd)restTick();lockScreen();}});
+window.addEventListener("hashchange",function(){fromHash();render();});
+fromHash();
+render();
+setInterval(function(){if(state.session&&ui.tab==="heute")updateProgress();},30000);
+lockScreen();
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
+if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}
+})();
+</script>
+</body>
+</html>
