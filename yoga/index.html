@@ -66,6 +66,8 @@ textarea{resize:vertical;margin-top:8px}
 .phA{background:#c9b98c}.phM{background:#9fbf9a}.phH{background:#5f8a72}.phK{background:#8aa7b8}.phE{background:#7d86a8}.phS{background:#c9b98c}
 .it,.lx{border-top:1px solid var(--line);padding:6px 0}
 .ph-h+.it,.card>.lx:first-child{border-top:0}
+.tr{margin:6px 0 2px;padding:8px 12px;border-left:3px solid #c9b98c;background:#f8f5ee;border-radius:0 12px 12px 0;font-size:13.5px;color:#6a5f45}.tr .arw{display:block;font-size:11.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#8a7c52;margin-bottom:2px}
+.rtr{text-align:left;background:#f8f5ee;border-left:3px solid #c9b98c;border-radius:0 14px 14px 0;padding:10px 14px;margin-bottom:16px;font-size:15px;color:#6a5f45}.rtr b{display:block;font-size:12px;letter-spacing:.6px;text-transform:uppercase;margin-bottom:2px}
 .it-top{display:flex;align-items:center;gap:8px}
 .it-main{flex:1;text-align:left;background:none;border:0;padding:8px 0;font:inherit;color:inherit;cursor:pointer;min-width:0}
 .nm{display:block;font-weight:600;font-size:16.5px}
@@ -346,6 +348,61 @@ function generate(only){
 }
 const total=items=>items.reduce((a,i)=>a+i.min,0);
 
+
+/* ---------- Überleitungen ---------- */
+const TR={
+"sit>vier":"Aus dem Sitz langsam auf die Knie kommen, die Hände nach vorn setzen und in den Vierfüßlerstand wandern. Handgelenke unter die Schultern, Knie unter die Hüfte.",
+"sit>knie":"Das Gesäß anheben und auf die Knie kommen. Die Hände stützen am Boden oder auf den Oberschenkeln, bis der Kniestand stabil ist.",
+"sit>stand":"Die Beine zur Seite oder nach vorn lösen, in den Vierfüßler wechseln, die Füße aufstellen und über den Stand langsam aufrollen. Der Kopf kommt zuletzt.",
+"sit>bauch":"Zuerst in den Vierfüßler, dann die Beine nach hinten ausstrecken und sanft auf den Bauch ablegen.",
+"sit>rueck":"Die Hände hinter dem Rücken abstützen und Wirbel für Wirbel nach hinten ablegen. Die Beine ausstrecken oder aufgestellt lassen.",
+"sit>seite":"Seitlich zur Seite ablegen, den Kopf auf den unteren Arm betten. Die Knie leicht anziehen.",
+"vier>sit":"Das Gesäß Richtung Fersen oder zur Seite absenken und aufrichten. Die Beine bequem sortieren.",
+"vier>knie":"Die Hände lösen und den Oberkörper aufrichten, bis du aufrecht auf den Knien stehst.",
+"vier>stand":"Die Zehen aufstellen, die Knie strecken und im Hängen der Wirbelsäule zu den Händen wandern. Dann langsam aufrollen.",
+"vier>bauch":"Die Beine nach hinten ausstrecken und den Bauch sanft auf der Matte ablegen.",
+"vier>rueck":"Das Gesäß zur Seite absenken, auf die Hüfte rollen und über die Seite auf den Rücken legen.",
+"vier>seite":"Das Gesäß zur Seite absenken und auf die Hüfte rollen. Den Kopf auf den unteren Arm legen.",
+"knie>sit":"Das Gesäß auf die Fersen oder daneben absenken und die Beine bequem sortieren.",
+"knie>vier":"Die Hände nach vorn setzen und in den Vierfüßlerstand kommen.",
+"knie>stand":"Einen Fuß nach vorn aufstellen, mit den Händen am Oberschenkel abstützen und aufrichten. Das andere Bein folgt.",
+"knie>bauch":"Die Hände nach vorn setzen, die Beine nach hinten ausstrecken und den Bauch ablegen.",
+"knie>rueck":"Zur Seite absenken, auf die Hüfte rollen und über die Seite auf den Rücken legen.",
+"knie>seite":"Zur Seite absenken und auf die Hüfte rollen, den Kopf auf den unteren Arm legen.",
+"stand>sit":"Die Knie beugen, die Hände zum Boden führen, in den Vierfüßler oder direkt zum Gesäß absenken und in den Sitz kommen.",
+"stand>vier":"Langsam nach vorn hängen, die Hände aufsetzen und die Knie nacheinander absenken.",
+"stand>knie":"Mit einem Knie zum Boden gehen, das andere folgt. Die Hände helfen beim Abstützen.",
+"stand>bauch":"Über den Vierfüßler die Beine nach hinten ausstrecken und sanft auf den Bauch ablegen.",
+"stand>rueck":"Über den Sitz die Hände hinter dem Rücken abstützen und langsam nach hinten ablegen.",
+"stand>seite":"Über die Knie auf die Hüfte absenken und seitlich ablegen. Den Kopf auf den unteren Arm betten.",
+"bauch>sit":"Die Hände unter die Schultern, das Gesäß zu den Fersen schieben und in den Sitz aufrichten.",
+"bauch>vier":"Die Hände unter die Schultern setzen und die Knie unterstellen.",
+"bauch>knie":"Über den Vierfüßler zu den Fersen schieben und aufrichten.",
+"bauch>stand":"Über den Vierfüßler und die Hocke langsam aufrichten. Der Kopf kommt zuletzt.",
+"bauch>rueck":"Zur Seite rollen und auf den Rücken legen.",
+"bauch>seite":"Auf eine Seite rollen und den Kopf auf den Arm legen.",
+"rueck>sit":"Zur Seite rollen, mit den Händen abdrücken und langsam zum Sitz aufrichten. Der Kopf kommt zuletzt.",
+"rueck>vier":"Zur Seite rollen, mit den Händen abdrücken und in den Vierfüßlerstand kommen.",
+"rueck>knie":"Über die Seite in den Vierfüßler und weiter auf die Knie aufrichten.",
+"rueck>stand":"Über die Seite und den Vierfüßler in den Stand kommen. Langsam aufrichten, Schwindel vermeiden.",
+"rueck>bauch":"Zur Seite rollen und auf den Bauch drehen.",
+"rueck>seite":"Zur Seite rollen, die Knie anziehen und den Kopf auf den Arm betten.",
+"seite>sit":"Mit den Händen abdrücken und langsam zum Sitz aufrichten. Der Kopf kommt zuletzt.",
+"seite>vier":"Mit den Händen abdrücken und in den Vierfüßlerstand kommen.",
+"seite>knie":"Über den Vierfüßler zu den Knien aufrichten.",
+"seite>stand":"Über den Vierfüßler und die Knie langsam in den Stand kommen.",
+"seite>bauch":"Auf den Bauch rollen und die Beine ausstrecken.",
+"seite>rueck":"Auf den Rücken rollen und die Beine ausstrecken oder aufstellen."
+};
+function trans(a,b){
+  if(!a||!b)return null;
+  const pa=byId(a.id).pos,pb=byId(b.id).pos;
+  if(pa===pb)return null;
+  let t=TR[pa+">"+pb];if(!t)return null;
+  if(state.draft.preg&&(pa==="rueck"||pb==="rueck"))t+=" Schwangere: nicht gerade aufsetzen, immer über die Seite und langsam.";
+  return {t:t,from:POS[pa],to:POS[pb]};
+}
+
 /* ---------- Details / Bausteine ---------- */
 function links(e){const q=encodeURIComponent(e.name+" Yoga");return '<div class="xl"><a href="https://www.google.com/search?tbm=isch&q='+q+'" target="_blank" rel="noopener">Bilder ansehen</a><a href="https://www.youtube.com/results?search_query='+q+'" target="_blank" rel="noopener">Video ansehen</a></div>';}
 function detail(e){
@@ -382,7 +439,8 @@ function viewPlan(){
     if(!idx.length)h+='<p class="note">Keine Übung in diesem Abschnitt.</p>';
     idx.forEach(i=>{
       const it=d.items[i],e=byId(it.id);
-      h+='<div class="it'+(it.lock?' locked':'')+'" data-i="'+i+'"><div class="it-top"><button class="it-main" data-act="exp"><span class="nm">'+esc(e.name)+(it.lock?'<span class="lk">'+ICO.lock+'</span>':'')+'</span><span class="mt">'+POS[e.pos]+' · '+e.zone.slice(0,2).join(", ")+(e.sides?' · je Seite':'')+'</span></button><div class="mn"><button data-act="dm" data-d="-1" aria-label="Eine Minute weniger">−</button><b>'+it.min+'′</b><button data-act="dm" data-d="1" aria-label="Eine Minute mehr">+</button></div></div>'+
+      const tx=i>0?trans(d.items[i-1],it):null;
+      h+=(tx?'<div class="tr"><span class="arw">'+esc(tx.from)+' → '+esc(tx.to)+'</span>'+esc(tx.t)+'</div>':'')+'<div class="it'+(it.lock?' locked':'')+'" data-i="'+i+'"><div class="it-top"><button class="it-main" data-act="exp"><span class="nm">'+esc(e.name)+(it.lock?'<span class="lk">'+ICO.lock+'</span>':'')+'</span><span class="mt">'+POS[e.pos]+' · '+e.zone.slice(0,2).join(", ")+(e.sides?' · je Seite':'')+'</span></button><div class="mn"><button data-act="dm" data-d="-1" aria-label="Eine Minute weniger">−</button><b>'+it.min+'′</b><button data-act="dm" data-d="1" aria-label="Eine Minute mehr">+</button></div></div>'+
         (d.preg||e.preg==="no"?'<div class="badges">'+(d.preg?pregBadge(e):'')+'</div>':'')+
         '<div class="more" hidden>'+detail(e)+(d.preg&&e.preg!=="ok"?'':'')+'<div class="tools"><button data-act="lock">'+ICO.lock+(it.lock?'Entsperren':'Sperren')+'</button><button data-act="swap">'+ICO.swap+'Austauschen</button><button data-act="mv" data-d="-1">'+ICO.up+'Hoch</button><button data-act="mv" data-d="1">'+ICO.down+'Runter</button><button data-act="del" class="danger">'+ICO.del+'Entfernen</button></div></div></div>';
     });
@@ -557,10 +615,10 @@ function runTick(){
 function drawRun(){
   const it=run.items[run.i],e=byId(it.id),last=run.i===run.items.length-1,nx=run.items[run.i+1];
   document.getElementById("runIn").innerHTML='<div class="r-top"><span class="pill">'+PHN[it.ph]+'</span><span class="mut">'+(run.i+1)+' von '+run.items.length+'</span></div>'+
-    '<h2>'+esc(e.name)+'</h2><p class="mt">'+POS[e.pos]+(e.sides?' · beide Seiten':'')+'</p><div class="rtime" id="rt">'+mmss(run.rem)+'</div><div class="mut" id="rtot"></div>'+
+    (run.i>0&&trans(run.items[run.i-1],it)?'<div class="rtr"><b>Überleitung · '+esc(trans(run.items[run.i-1],it).from)+' → '+esc(trans(run.items[run.i-1],it).to)+'</b>'+esc(trans(run.items[run.i-1],it).t)+'</div>':'')+'<h2>'+esc(e.name)+'</h2><p class="mt">'+POS[e.pos]+(e.sides?' · beide Seiten':'')+'</p><div class="rtime" id="rt">'+mmss(run.rem)+'</div><div class="mut" id="rtot"></div>'+
     '<div class="rhow">'+esc(e.how||"")+(e.tip?'<br><span class="mut">Tipp: '+esc(e.tip)+'</span>':'')+(state.draft.preg&&e.pn?'<br><span class="mut">Schwangere: '+esc(e.pn)+'</span>':'')+'</div>'+
     '<div class="rbtns"><button class="btn ghost" data-act="rprev"'+(run.i===0?' disabled':'')+'>Zurück</button><button class="btn ghost" data-act="rpause">'+(run.paused?'Weiter':'Pause')+'</button><button class="btn" data-act="'+(last?'rend':'rnext')+'">'+(last?'Fertig':'Nächste')+'</button></div>'+
-    '<p class="mut next">'+(nx?'Danach: '+esc(byId(nx.id).name)+' ('+nx.min+' min)':'Das war die letzte Übung')+'</p><button class="link" data-act="rquit">Beenden</button>';
+    '<p class="mut next">'+(nx?'Danach: '+esc(byId(nx.id).name)+' ('+nx.min+' min)'+(trans(it,nx)?' · '+esc(trans(it,nx).from)+' → '+esc(trans(it,nx).to):''):'Das war die letzte Übung')+'</p><button class="link" data-act="rquit">Beenden</button>';
   runTick();
 }
 function closeRun(){clearInterval(run&&run.t);run=null;unlockScreen();document.getElementById("run").classList.remove("on");document.body.classList.remove("noscroll");}
@@ -572,7 +630,7 @@ function finishRun(){
 /* ---------- Text, ICS, Backup ---------- */
 function asText(d){
   let t="Soft Yoga · "+fmt(d.date,{weekday:"long",day:"numeric",month:"long"})+"\nLeitgedanke: "+d.theme+"\nSchwerpunkt: "+d.focus+" · "+d.len+" min"+(d.preg?" · Schwangere dabei":"")+"\n";
-  PHS.forEach(p=>{const its=d.items.filter(i=>i.ph===p.c);if(!its.length)return;t+="\n"+p.n+" ("+total(its)+" min)\n";its.forEach(i=>{const e=byId(i.id);t+="• "+e.name+" – "+i.min+" min"+(e.sides?" (je Seite)":"")+"\n";});});
+  PHS.forEach(p=>{const its=d.items.filter(i=>i.ph===p.c);if(!its.length)return;t+="\n"+p.n+" ("+total(its)+" min)\n";its.forEach(i=>{const e=byId(i.id);const k=d.items.indexOf(i),tx=k>0?trans(d.items[k-1],i):null;if(tx)t+="   ↳ "+tx.t+"\n";t+="• "+e.name+" – "+i.min+" min"+(e.sides?" (je Seite)":"")+"\n";});});
   if(d.note)t+="\nNotiz: "+d.note+"\n";
   return t;
 }
