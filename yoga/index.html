@@ -624,7 +624,10 @@ function drawRun(){
 }
 function closeRun(){clearInterval(run&&run.t);run=null;unlockScreen();document.getElementById("run").classList.remove("on");document.body.classList.remove("noscroll");}
 function finishRun(){
+  const cur=state.lessons.filter(x=>x.id===state.draft.savedId)[0];
+  if(cur&&cur.status==="gehalten")state.draft.savedId=null;
   const l=saveDraft();l.status="gehalten";if(l.date>today())l.date=today();
+  state.draft.savedId=null;
   save();closeRun();render();feedbackSheet(l.id);
 }
 
@@ -668,7 +671,7 @@ document.addEventListener("click",ev=>{
     case "doswap":{const e=byId(el.dataset.id),old=d.items[ui.swapIx];if(old){d.items.forEach(i=>{if(i.pairOf===old.id)delete i.pairOf;});d.items[ui.swapIx]={id:e.id,ph:old.ph,min:e.min,lock:false};}closeSheet();save();render();break;}
     case "addp":{const cs=candidates(el.dataset.p,"").sort((a,b)=>a.name.localeCompare(b.name,"de"));pickSheet("Übung hinzufügen · "+PHN[el.dataset.p],cs,"doadd",el.dataset.p);break;}
     case "doadd":{const e=byId(el.dataset.id),ph=el.dataset.p;let pos=d.items.map(i=>i.ph).lastIndexOf(ph);if(pos<0){const order=PHS.map(p=>p.c);pos=-1;d.items.forEach((i,k)=>{if(order.indexOf(i.ph)<order.indexOf(ph))pos=k;});}d.items.splice(pos+1,0,{id:e.id,ph:ph,min:e.min,lock:false});closeSheet();save();render();break;}
-    case "run":unlockAudio();saveDraft();startRun(d.items.slice(),d.savedId);break;
+    case "run":unlockAudio();{const cu=state.lessons.filter(x=>x.id===d.savedId)[0];if(cu&&cu.status==="gehalten")d.savedId=null;}saveDraft();startRun(d.items.slice(),d.savedId);break;
     case "saveplan":{const l=saveDraft();render();openSheet('<h3>Gespeichert</h3><p class="note">Die Stunde vom '+lab(l.date)+' findest du unter „Stunden“.</p><div class="btns"><button class="btn" data-act="closeSheet">OK</button></div>');break;}
     case "copy":{const t=asText(d);const done=()=>openSheet('<h3>Kopiert</h3><p class="note">Der Ablauf liegt in der Zwischenablage und lässt sich in Notizen oder Nachrichten einfügen.</p><div class="btns"><button class="btn" data-act="closeSheet">OK</button></div>');const fb=()=>openSheet('<h3>Als Text</h3><textarea id="cp" rows="12" readonly>'+esc(t)+'</textarea><div class="btns"><button class="btn" data-act="closeSheet">Schließen</button></div>');try{navigator.clipboard.writeText(t).then(done,fb);}catch(e){fb();}break;}
     case "fph":ui.ph=el.dataset.v;render();break;
