@@ -564,6 +564,7 @@ function settingsSheet(){
   '<div class="eyebrow mt">Wiederholungen vermeiden</div><div class="chips">'+[0,1,2,3,4].map(n=>'<button class="chip" data-act="setavoid" data-v="'+n+'" aria-pressed="'+(s.avoid===n)+'">'+(n===0?'aus':'letzte '+n)+'</button>').join("")+'</div><p class="note">Übungen aus den letzten Stunden werden seltener vorgeschlagen.</p>'+
   '<div class="eyebrow mt">Erinnerung</div><button class="btn ghost" data-act="ics">Wöchentlich im Kalender erinnern</button><p class="note">Lädt einen Kalendereintrag für jeden Sonntag um 19 Uhr herunter: „Soft Yoga planen“.</p>'+
   '<div class="eyebrow mt">Sicherung</div><div class="row two"><button class="btn ghost" data-act="export">Sicherung speichern</button><button class="btn ghost" data-act="import">Sicherung einspielen</button></div><p class="note">Deine Daten liegen nur auf diesem Gerät. Speichere ab und zu eine Sicherung.</p>'+
+  '<div class="eyebrow mt">Statistik zurücksetzen</div><div class="tools"><button data-act="reset" data-k="kurs">Kurs</button><button data-act="reset" data-k="privat">Privat / Test</button><button data-act="reset" data-k="alle" class="danger">Alles</button></div><p class="note">Löscht die gehaltenen Stunden und damit die Auswertung. Geplante Stunden, Favoriten und eigene Übungen bleiben.</p>'+
   '<p class="note disc">Die Vorschläge sind Anregungen. Du entscheidest nach Erfahrung und Gruppe. Hinweise zur Schwangerschaft ersetzen keine Beratung durch Ärztin oder Hebamme.</p></div><div class="btns"><button class="btn" data-act="closeSheet">Fertig</button></div>');
 }
 function newExSheet(){
@@ -708,6 +709,8 @@ document.addEventListener("click",ev=>{
     case "setp":state.set[el.dataset.v]=!state.set[el.dataset.v];save();settingsSheet();break;
     case "setlen":state.set.len=+el.dataset.v;if(!state.draft.items.length)state.draft.len=state.set.len;save();settingsSheet();break;
     case "setavoid":state.set.avoid=+el.dataset.v;save();settingsSheet();break;
+    case "reset":{const k=el.dataset.k,n=state.lessons.filter(l=>l.status==="gehalten"&&(k==="alle"||kindOf(l)===k)).length;openSheet('<h3>Statistik zurücksetzen?</h3><p class="note">'+(k==="alle"?'Alle':n+(k==="kurs"?' Kurs-':' private '))+(k==="alle"?' '+n+' gehaltenen Stunden (Kurs und Privat) werden':'Stunden werden')+' endgültig gelöscht. Das lässt sich nicht rückgängig machen. Tipp: Speichere vorher eine Sicherung.</p><div class="btns"><button class="btn ghost" data-act="closeSheet">Abbrechen</button><button class="btn" data-act="resetnow" data-k="'+k+'">Zurücksetzen</button></div>');break;}
+    case "resetnow":{const k=el.dataset.k;state.lessons=state.lessons.filter(l=>!(l.status==="gehalten"&&(k==="alle"||kindOf(l)===k)));if(!state.lessons.some(l=>l.id===state.draft.savedId))state.draft.savedId=null;ui.open=null;save();closeSheet();render();break;}
     case "ics":download("soft-yoga-planen.ics","text/calendar",icsFile());break;
     case "export":download("soft-yoga-sicherung.json","application/json",JSON.stringify(state));break;
     case "import":document.getElementById("imp").click();break;
