@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Steffen's Gym</title>
+<title>SR Gym</title>
 <link rel="manifest" href="manifest-v2.webmanifest">
 <meta name="theme-color" content="#0d0f12">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Steffen's Gym">
+<meta name="apple-mobile-web-app-title" content="SR Gym">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -173,7 +173,7 @@ span.up,b.up{font-weight:700}
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><div class="brand">Steffen's <b>Gym</b></div><div class="date" id="today"></div></div>
+  <div class="top"><div class="brand">SR <b>Gym</b></div><div class="date" id="today"></div></div>
   <main id="view"></main>
 </div>
 
@@ -726,7 +726,7 @@ document.getElementById("imp").addEventListener("change",function(ev){
   var r=new FileReader();
   r.onload=function(){
     try{var o=JSON.parse(r.result);if(!o||!o.plan||!Array.isArray(o.history))throw 0;state=o;save();render();openSheet('<h3>Sicherung eingespielt</h3><p class="note">Plan, Verlauf und Gewichte sind wieder da.</p><div class="btns"><button class="btn" data-act="closeSheet">OK</button></div>');}
-    catch(e){openSheet('<h3>Datei nicht lesbar</h3><p class="note">Das ist keine Sicherung von Steffen\'s Gym.</p><div class="btns"><button class="btn" data-act="closeSheet">OK</button></div>');}
+    catch(e){openSheet('<h3>Datei nicht lesbar</h3><p class="note">Das ist keine Sicherung von SR Gym.</p><div class="btns"><button class="btn" data-act="closeSheet">OK</button></div>');}
     ev.target.value="";
   };
   r.readAsText(f);

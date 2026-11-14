@@ -1,6 +1,6 @@
 {
- "name": "Steffen's Gym",
- "short_name": "Steffen's Gym",
+ "name": "SR Gym",
+ "short_name": "SR Gym",
  "description": "Trainingsplan und Abhak-Liste",
  "start_url": "./",
  "scope": "./",
