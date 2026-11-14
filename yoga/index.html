@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Soft Yoga Planer</title>
+<meta name="theme-color" content="#f6f3ec">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Soft Yoga">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f3ec;--card:#fffdf8;--ink:#24312a;--mut:#6b7a70;--sage:#5f8a72;--sage-d:#3f6652;--sage-l:#dfeadf;--sand:#e9e2d2;--line:#e4dfd2;--warn:#b5654a;--head:"Fraunces",Georgia,serif;--body:"Figtree",system-ui,-apple-system,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg)}
+body{margin:0;font-family:var(--body);color:var(--ink);background:var(--bg);font-size:16px;line-height:1.45;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+body.noscroll{overflow:hidden}
+header{padding:calc(14px + env(safe-area-inset-top)) 18px 6px;display:flex;align-items:center;gap:12px;max-width:640px;margin:0 auto}
+header h1{font-family:var(--head);font-weight:600;font-size:24px;margin:0;flex:1;letter-spacing:.2px}
+header small{display:block;font-family:var(--body);font-weight:500;font-size:12.5px;color:var(--mut);letter-spacing:.6px;text-transform:uppercase}
+main{max-width:640px;margin:0 auto;padding:6px 14px 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:12px}
+.card.empty{text-align:center;color:var(--mut)}
+.lotus{display:flex;justify-content:center;margin-bottom:6px}
+.row{display:flex;align-items:center;gap:10px}.row.g{gap:4px}.row.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grow{flex:1;min-width:0}
+.eyebrow{font-size:12px;letter-spacing:.7px;text-transform:uppercase;color:var(--mut);font-weight:600}
+.mt{margin-top:14px}.mut{color:var(--mut)}
+.mt2{margin:8px 0;color:var(--mut)}
+.bigdate{font-family:var(--head);font-size:22px;font-weight:600}
+.quote{font-family:var(--head);font-size:19px;font-style:italic;color:var(--sage-d);padding:4px 0}
+.theme{margin-top:12px;padding:10px 12px;background:var(--sage-l);border-radius:14px}
+.note{font-size:13.5px;color:var(--mut);margin:8px 0 0}
+.note.disc{margin-top:16px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.chips.scroll{flex-wrap:nowrap;overflow-x:auto;margin-left:-4px;margin-right:-4px;padding:2px 4px;scrollbar-width:none}
+.chips.scroll::-webkit-scrollbar{display:none}
+.chip{font:600 14px var(--body);color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:9px 14px;white-space:nowrap;cursor:pointer;min-height:40px}
+.chip[aria-pressed="true"]{background:var(--sage);border-color:var(--sage);color:#fff}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.opts{margin-top:14px;justify-content:space-between;flex-wrap:wrap}
+.len{font-size:14px;color:var(--mut)}
+select,input[type=text],input[type=number],input[type=date],input[type=search],textarea{font:500 16px var(--body);color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;width:100%}
+.len select{width:auto;padding:7px 8px}
+textarea{resize:vertical;margin-top:8px}
+.search{margin-bottom:2px}
+.filters{margin-top:10px}.filters select{flex:1}
+.btn{font:700 16px var(--body);border:0;border-radius:16px;padding:14px 18px;background:var(--sage);color:#fff;cursor:pointer;width:100%;min-height:50px}
+.btn.big{margin-top:16px;padding:16px;font-size:17px}
+.btn.ghost{background:transparent;color:var(--sage-d);border:1.5px solid var(--sage)}
+.btn:disabled{opacity:.4}
+.btn:active{transform:scale(.99)}
+.actions{display:grid;gap:10px;margin:6px 0 14px}
+.icon{width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:var(--sage-d);display:grid;place-items:center;cursor:pointer;flex:none}
+.icon svg{width:22px;height:22px}.icon.sm{width:38px;height:38px}.icon.sm svg{width:19px;height:19px}
+.icon.on{color:#c4573f}.icon.on svg{fill:#c4573f}
+.sum{display:flex;justify-content:space-between;padding:2px 6px 10px;color:var(--mut);font-size:14px}
+.sum b{color:var(--sage-d)}.sum b.off{color:var(--warn)}
+.ph-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;background:var(--sage)}
+.phA{background:#c9b98c}.phM{background:#9fbf9a}.phH{background:#5f8a72}.phK{background:#8aa7b8}.phE{background:#7d86a8}.phS{background:#c9b98c}
+.it,.lx{border-top:1px solid var(--line);padding:6px 0}
+.ph-h+.it,.card>.lx:first-child{border-top:0}
+.it-top{display:flex;align-items:center;gap:8px}
+.it-main{flex:1;text-align:left;background:none;border:0;padding:8px 0;font:inherit;color:inherit;cursor:pointer;min-width:0}
+.nm{display:block;font-weight:600;font-size:16.5px}
+.lk{display:inline-block;vertical-align:-3px;margin-left:6px;color:var(--sage)}.lk svg{width:15px;height:15px}
+.mt{font-size:13.5px;color:var(--mut)}
+.it-main .mt,.pk .mt,.ls-h .mt{display:block;margin-top:2px}
+.it.locked{background:linear-gradient(90deg,var(--sage-l),transparent 60%);border-radius:10px;padding-left:8px;margin-left:-8px}
+.mn{display:flex;align-items:center;gap:2px;flex:none}
+.mn button{width:36px;height:36px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font:700 18px var(--body);color:var(--sage-d);cursor:pointer}
+.mn b{min-width:34px;text-align:center;font-size:15px}
+.badges{display:flex;gap:6px;flex-wrap:wrap}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--sand);color:#6a5f45}
+.pill.warn{background:#f3ded6;color:var(--warn)}.pill.ok{background:var(--sage-l);color:var(--sage-d)}
+.det{background:#f8f5ee;border-radius:14px;padding:12px 14px;margin:6px 0 8px;font-size:15px}
+.det p{margin:0 0 8px}.det b{display:block;font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:var(--mut);margin-bottom:2px}
+.det .chips-line{font-size:13px;color:var(--mut)}
+.xl{display:flex;gap:14px}.xl a{color:var(--sage-d);font-weight:600;font-size:14px}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 6px}
+.tools button{display:inline-flex;align-items:center;gap:6px;font:600 14px var(--body);background:#fff;border:1.5px solid var(--line);color:var(--sage-d);border-radius:12px;padding:8px 12px;cursor:pointer;min-height:40px}
+.tools button svg{width:16px;height:16px}
+.tools .danger{color:var(--warn)}
+.lx.blocked .nm{opacity:.5}
+.ls{border-top:1px solid var(--line)}.card>.ls:first-child{border-top:0}
+.ls-h{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:none;border:0;padding:12px 0;font:inherit;color:inherit;cursor:pointer}
+.ls-h .dt{font-weight:700;font-size:13.5px;color:var(--sage-d);width:78px;flex:none}
+.ls-b{padding:0 0 10px}
+.lph{margin:8px 0;font-size:15px}.lph b{display:block;font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:var(--mut)}
+.hrt svg{width:13px;height:13px;fill:#c4573f;stroke:#c4573f;vertical-align:-1px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 8px;text-align:center}
+.stat b{display:block;font-family:var(--head);font-size:28px;color:var(--sage-d)}.stat span{font-size:12px;color:var(--mut)}
+.up{color:var(--sage-d)}
+.hb-r{display:grid;grid-template-columns:110px 1fr 54px;gap:8px;align-items:center;margin:8px 0;font-size:14px}
+.hb-l{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hb-t{height:10px;background:var(--sand);border-radius:6px;overflow:hidden}.hb-t i{display:block;height:100%;background:var(--sage);border-radius:6px}
+.hb-v{text-align:right;color:var(--mut);font-size:13px}
+.lr{display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line);font-size:15px}.lr:first-of-type{border-top:0}
+nav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,253,248,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:6px 6px calc(6px + env(safe-area-inset-bottom));z-index:20}
+.tab{background:none;border:0;font:600 12px var(--body);color:var(--mut);padding:8px 0;display:grid;justify-items:center;gap:3px;cursor:pointer;min-height:52px}
+.tab svg{width:24px;height:24px}
+.tab[aria-current="page"]{color:var(--sage-d)}
+.tab[aria-current="page"] svg{stroke:var(--sage-d)}
+#veil{position:fixed;inset:0;background:rgba(36,49,42,.4);opacity:0;pointer-events:none;transition:.2s;z-index:40}#veil.on{opacity:1;pointer-events:auto}
+#sheet{position:fixed;left:0;right:0;bottom:0;max-height:88vh;overflow:auto;background:var(--card);border-radius:24px 24px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));z-index:50;transform:translateY(105%);transition:transform .25s;max-width:640px;margin:0 auto}
+#sheet.on{transform:none}
+#sheet h3{font-family:var(--head);font-size:22px;margin:0 0 10px}
+.btns{display:flex;gap:10px;margin-top:16px}.btns .btn{flex:1}
+.pick{display:grid;gap:6px;max-height:55vh;overflow:auto}
+.pk{text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:11px 14px;font:inherit;color:inherit;cursor:pointer}
+.form label{display:block;font-size:13px;font-weight:600;color:var(--mut);margin-bottom:10px}
+.form label input,.form label select,.form label textarea{margin-top:4px;font-weight:500}
+.stepper{display:flex;gap:10px;margin-top:6px}.stepper input{text-align:center;font-size:20px;font-weight:700}
+.stepper button{width:52px;border-radius:14px;border:1.5px solid var(--line);background:#fff;font:700 22px var(--body);color:var(--sage-d);cursor:pointer}
+.moods{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:8px}
+.likes{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.lk-b{display:inline-flex;align-items:center;gap:6px;font:600 14px var(--body);background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:8px 12px;color:var(--ink);cursor:pointer}
+.lk-b svg{width:15px;height:15px}
+.lk-b[aria-pressed="true"]{background:#f8e3dc;border-color:#c4573f}.lk-b[aria-pressed="true"] svg{fill:#c4573f;stroke:#c4573f}
+#run{position:fixed;inset:0;background:var(--bg);z-index:30;display:none;overflow:auto;padding:calc(18px + env(safe-area-inset-top)) 20px 24px}
+#run.on{display:block}
+#runIn{max-width:520px;margin:0 auto;text-align:center}
+.r-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+#runIn h2{font-family:var(--head);font-size:30px;margin:0 0 4px}
+.rtime{font-family:var(--head);font-size:84px;font-weight:600;color:var(--sage-d);margin:18px 0 0;font-variant-numeric:tabular-nums}.rtime.over{color:var(--warn)}
+.rhow{text-align:left;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 16px;margin:20px 0;font-size:16.5px}
+.rbtns{display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:10px}
+.next{margin-top:16px}
+.link{background:none;border:0;color:var(--mut);font:600 14px var(--body);text-decoration:underline;margin-top:8px;cursor:pointer;padding:10px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #8fb7a0;outline-offset:2px}
+</style>
+</head>
+<body>
+<header><div style="flex:1"><small>Montag · 17–18 Uhr</small><h1>Soft Yoga Planer</h1></div><button class="icon" data-act="settings" aria-label="Einstellungen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg></button></header>
+<main id="view"></main>
+<nav aria-label="Hauptmenü">
+<button class="tab" data-tab="plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18.5 9l-4.7 1.4L12 15l-1.8-4.6L5.5 9l4.7-1.4z"/><path d="M18 16l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>Planen</button>
+<button class="tab" data-tab="lib"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M5 9l7 2 7-2M12 11v4M8 21l4-6 4 6"/></svg>Übungen</button>
+<button class="tab" data-tab="ls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 10h16"/></svg>Stunden</button>
+<button class="tab" data-tab="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M12 20V5M19 20v-7"/></svg>Auswertung</button>
+</nav>
+<div id="veil" data-act="closeSheet"></div>
+<div id="sheet" role="dialog" aria-modal="true"><div id="sheetIn"></div></div>
+<div id="run"><div id="runIn"></div></div>
+<input type="file" id="imp" accept="application/json,.json" hidden>
+<script>
+/* Übungsbibliothek: X(id, Name, Phasen, Position, Körperbereiche, Intensität 1-3, Minuten gesamt, beide Seiten, Hilfsmittel (nötig), Schwangere ok/mod/no, Ausführung, Hinweis, Schwangeren-Hinweis, Gegenhaltungen) */
+function X(id,name,ph,pos,zone,int,min,sides,props,preg,how,tip,pn,ctr){
+  return {id:id,name:name,ph:ph.split(""),pos:pos,zone:zone.split(","),int:int,min:min,sides:!!sides,props:props?props.split(","):[],preg:preg,how:how,tip:tip||"",pn:pn||"",ctr:ctr?ctr.split(","):null};
+}
+var LIB=[
+/* ---- Ankommen ---- */
+X("ankommen","Ankommen im Sitzen","A","sit","Atem,Geist",1,3,0,"","ok","Bequem sitzen (Boden, Kissen oder Stuhl), Augen schließen oder den Blick senken. Hände auf die Oberschenkel. Spüren, wie der Körper aufliegt, und den Atem kommen und gehen lassen.","Wer mag, darf die Position jederzeit wechseln."),
+X("bauchatmung","Bauchatmung","AKS","sit","Atem,Mitte",1,4,0,"","ok","Eine Hand auf den Bauch, eine auf die Brust. Durch die Nase einatmen, der Bauch hebt sich. Langsam ausatmen, der Bauch senkt sich. Die Ausatmung darf etwas länger sein als die Einatmung.","Nichts erzwingen, der Atem bleibt weich."),
+X("dreiteiliger-atem","Dreiteiliger Atem","AK","sit","Atem",1,4,0,"","ok","Einatmen erst in den Bauch, dann in die Rippen, dann in die Brust. Beim Ausatmen in derselben Reihenfolge wieder loslassen. Ruhig und ohne Anstrengung."),
+X("intention","Körperscan und Intention","A","sit","Geist",1,3,0,"","ok","Kurz von den Füßen bis zum Scheitel durch den Körper wandern. Danach eine kleine Absicht für die Stunde wählen, zum Beispiel „Ich nehme mir Zeit“.","Die Gruppe darf die Absicht für sich behalten."),
+X("haende-waermen","Hände reiben und Wärme spüren","A","sit","Arme,Geist",1,2,0,"","ok","Die Handflächen kräftig aneinander reiben, bis sie warm sind. Dann auf die Augen, den Bauch oder die Nieren legen und die Wärme wirken lassen."),
+X("wechselatmung","Wechselatmung (sanft)","AKS","sit","Atem,Geist",1,3,0,"","ok","Mit der rechten Hand das rechte Nasenloch verschließen, links einatmen. Links verschließen, rechts ausatmen. Rechts einatmen, rechts verschließen, links ausatmen. Einige ruhige Runden.","Nie den Atem anhalten. Bei verstopfter Nase die Übung weglassen."),
+/* ---- Mobilisation ---- */
+X("nacken","Sanfte Nackenbewegungen","M","sit","Nacken",1,3,0,"","ok","Das Kinn senkt sich langsam zur Brust, dann zurück zur Mitte. Das rechte Ohr wandert zur rechten Schulter, dann das linke zur linken. Nur kleine, weiche Bewegungen.","Keine Kreise mit weit zurückgelegtem Kopf."),
+X("schultern","Schulterkreisen","M","sit","Schultern",1,2,0,"","ok","Die Schultern langsam nach hinten kreisen lassen, dann nach vorn. Mit dem Atem verbinden: hoch beim Einatmen, weich fallen beim Ausatmen."),
+X("arme-heben","Arme heben mit dem Atem","MH","sit","Schultern,Arme,Atem",1,3,0,"","ok","Beim Einatmen die Arme seitlich nach oben führen, beim Ausatmen langsam sinken lassen. Die Bewegung folgt dem Atem.","Auch im Stehen und auf dem Stuhl möglich."),
+X("seitbeuge-sitz","Seitbeuge im Sitzen","MH","sit","Rücken,Schultern",1,3,1,"","ok","Eine Hand neben der Hüfte aufstützen. Den anderen Arm beim Einatmen hoch, beim Ausatmen zur Seite lang machen. Die Rippen auf der Gegenseite weiten.","Der Oberkörper bleibt offen, nicht nach vorn kippen."),
+X("drehung-sanft","Sanfte Drehung im Sitzen","MH","sit","Rücken,Mitte",1,3,1,"","mod","Aufrecht sitzen, Hände auf die Knie. Beim Ausatmen den Oberkörper aus der Brustwirbelsäule drehen, der Blick folgt locker. Beim Einatmen wieder lang werden.","Nicht mit den Armen in die Drehung ziehen.","Offene Drehung zum Knie hin, nicht über den Bauch. Nicht tief verdrehen."),
+X("katze-kuh","Katze und Kuh","MH","vier","Rücken",1,3,0,"","ok","Hände unter den Schultern, Knie unter den Hüften. Einatmen: Brust öffnen, Becken kippt nach hinten oben. Ausatmen: Rücken rund, Kinn zur Brust. Mit dem Atem fließen lassen.","Bei empfindlichen Handgelenken auf den Fäusten oder den Unterarmen."),
+X("huefte-kreisen","Hüftkreisen im Vierfüßler","M","vier","Hüfte,Rücken",1,2,0,"","ok","Im Vierfüßler das Becken in kleinen, weichen Kreisen bewegen, erst in die eine, dann in die andere Richtung."),
+X("beckenschaukel","Beckenschaukel im Stand","M","stand","Hüfte,Rücken",1,2,0,"","ok","Füße hüftbreit, Knie weich. Das Becken sanft vor und zurück kippen, dann zur Seite schaukeln lassen."),
+X("fuesse-wecken","Füße wecken","M","sit","Füße,Beine",1,3,1,"","ok","Die Zehen spreizen und wieder sammeln. Die Fußgelenke kreisen. Die Fußsohle über einen Ball oder die Handkante rollen.","Auf dem Stuhl gut machbar."),
+X("handgelenke","Handgelenke und Finger lösen","M","sit","Arme",1,2,0,"","ok","Handgelenke kreisen, Finger spreizen und schließen, Hände ausschütteln."),
+X("wirbelwelle","Wirbelsäulenwelle im Sitzen","M","sit","Rücken",1,3,0,"","ok","Hände auf den Knien. Einatmen: das Brustbein hebt sich. Ausatmen: der Rücken wird sanft rund. Wie Katze und Kuh, nur im Sitzen."),
+X("berg","Berghaltung (Tadasana)","MH","stand","Beine,Geist,Gleichgewicht",1,2,0,"","ok","Die Füße hüftbreit, das Gewicht gleichmäßig verteilt, Knie weich. Der Scheitel wächst nach oben, Schultern lösen sich. Spüren, wie der Boden trägt."),
+X("wiegen","Seitliches Wiegen im Stand","M","stand","Beine,Hüfte,Gleichgewicht",1,2,0,"","ok","Das Gewicht langsam von einem Fuß auf den anderen verlagern. Die Arme hängen locker und schwingen mit."),
+/* ---- Haltungen ---- */
+X("kind","Kindhaltung (Balasana)","HK","knie","Rücken,Hüfte,Atem",1,2,0,"","mod","Aus dem Fersensitz den Oberkörper nach vorn sinken lassen. Stirn auf Boden, Block oder Kissen, die Arme vor oder neben den Körper. In den Rücken atmen.","Kissen unter Gesäß oder Brust, wenn die Knie oder Hüften ziehen.","Die Knie weit öffnen, damit der Bauch Platz hat."),
+X("vierfuessler-heben","Vierfüßler mit Arm- oder Beinheben","H","vier","Rücken,Mitte,Gleichgewicht",2,3,1,"","ok","Im Vierfüßler einen Arm nach vorn oder ein Bein nach hinten ausstrecken. Das Becken bleibt ruhig. Kurz halten und wieder absetzen.","Zuerst nur Arm oder nur Bein heben.","Ohne Spannung im Bauch, nur so weit, wie es angenehm ist."),
+X("nadeloehr","Fädeln der Nadel","H","vier","Schultern,Rücken,Nacken",1,3,1,"","ok","Im Vierfüßler einen Arm unter dem Körper hindurch zur Gegenseite schieben. Schulter und Ohr ruhen am Boden. Tief atmen, dann zurückkommen.","Eine gefaltete Decke unter Schulter und Kopf macht es weicher.","Knie etwas weiter öffnen."),
+X("krieger2","Seitliche Weite (Krieger II)","H","stand","Beine,Hüfte,Schultern",2,4,1,"","ok","Weit stehen, das vordere Knie über dem Knöchel, die Arme lang zur Seite. Schultern entspannt, ruhig atmen.","Die Haltung kürzer halten, wenn die Oberschenkel brennen."),
+X("seitneigung-stand","Seitneigung im Stand","H","stand","Rücken,Hüfte",2,3,1,"","ok","Beine hüftbreit, ein Arm geht nach oben, der Oberkörper neigt sich zur Seite. Das Becken bleibt mittig. Die Gegenseite wird lang."),
+X("vorbeuge-stand","Sanfte Vorbeuge im Stand","H","stand","Rücken,Beine",1,2,0,"","mod","Die Knie weich, den Oberkörper nach vorn hängen lassen. Hände auf Oberschenkel oder Block, der Kopf ist schwer. Langsam Wirbel für Wirbel aufrollen.","Beim Aufrichten den Kopf zuletzt heben.","Die Beine weiter öffnen, damit der Bauch Platz hat."),
+X("baum","Baum (Vrksasana)","H","stand","Beine,Gleichgewicht,Geist",2,3,1,"","ok","Das Gewicht auf einen Fuß, den anderen Fuß an Wade oder Oberschenkel legen, nie ans Knie. Hände vor der Brust oder nach oben. Einen Punkt fixieren.","Mit einer Hand an der Wand oder am Stuhl abstützen ist völlig in Ordnung."),
+X("stuhlhaltung","Stuhlhaltung (Utkatasana) sanft","H","stand","Beine",3,2,0,"","ok","Füße hüftbreit, das Gesäß geht nach hinten, als würde man sich setzen. Arme vor dem Körper oder oben, der Rücken bleibt lang.","Nur so tief, wie es sich stabil anfühlt."),
+X("ausfallschritt","Sanfter Ausfallschritt","H","knie","Hüfte,Beine",2,4,1,"","mod","Das hintere Knie liegt auf einer Decke, das vordere Knie steht über dem Knöchel. Das Becken sinkt sanft nach vorn, der Oberkörper bleibt lang.","Hände auf dem vorderen Oberschenkel oder auf Blöcken.","Nur wenig nach vorn sinken, kein Druck auf den Bauch."),
+X("schmetterling","Schmetterling (Baddha Konasana)","H","sit","Hüfte",1,3,0,"","ok","Die Fußsohlen aneinander, die Knie fallen locker nach außen. Der Oberkörper bleibt aufrecht oder neigt sich leicht nach vorn.","Kissen oder Decken unter die Knie, wenn sie hoch stehen."),
+X("sitz-vorbeuge","Sitzende Vorbeuge sanft","H","sit","Rücken,Beine",1,3,0,"","mod","Die Beine nach vorn ausstrecken, die Knie leicht gebeugt oder auf einer Decke. Mit langem Rücken über die Beine neigen, Hände ruhen auf den Beinen.","Lieber ein runder Rücken mit entspannten Beinen als ein erzwungen gerader.","Die Beine weit öffnen, der Bauch bekommt Raum."),
+X("einbein-vorbeuge","Einbein-Vorbeuge sanft","H","sit","Rücken,Beine,Hüfte",1,4,1,"","mod","Ein Bein ausstrecken, die Fußsohle des anderen liegt am Oberschenkel. Mit langem Rücken über das gestreckte Bein neigen.","Kissen unter das angewinkelte Knie.","Das gestreckte Bein zur Seite öffnen."),
+X("drehsitz","Drehsitz (Ardha Matsyendrasana) sanft","H","sit","Rücken,Hüfte",2,4,1,"","mod","Im Sitz ein Bein aufstellen und über das andere legen. Mit der Ausatmung drehen, die Hände stützen. Die Wirbelsäule bleibt lang.","Das untere Bein darf ausgestreckt bleiben.","Nur offene Drehung zum aufgestellten Knie hin, nicht über den Bauch."),
+X("adlerarme","Adlerarme","H","sit","Schultern,Nacken",1,3,1,"","ok","Die Arme überkreuzen, die Ellbogen übereinander, die Handrücken oder Handflächen aneinander. Die Ellbogen sanft heben, die Schulterblätter weiten sich.","Ein Tuch zwischen den Händen hilft bei wenig Beweglichkeit."),
+X("kuhgesicht-arme","Kuhgesicht-Arme mit Gurt","H","sit","Schultern,Arme",2,3,1,"Gurt","ok","Ein Arm geht nach oben, der Ellbogen zeigt zur Decke. Der andere Arm kommt von unten. Ein Gurt oder Tuch verbindet die Hände.","Weit auseinander greifen, wenn es zu stark zieht."),
+X("beckenboden","Beckenboden spüren","HK","rueck","Mitte,Hüfte",1,2,0,"","ok","In Rückenlage die Füße aufstellen. Beim Ausatmen den Beckenboden sanft nach innen und oben ziehen, beim Einatmen vollständig loslassen. Ruhig und ohne Druck.","Gesäß und Bauch bleiben weich.","Auch in Seitenlage möglich."),
+X("bruecke","Schulterbrücke (sanft)","H","rueck","Rücken,Beine,Hüfte",2,3,0,"","mod","Die Füße hüftbreit aufstellen. Beim Ausatmen das Becken heben, kurz halten, Wirbel für Wirbel wieder ablegen.","Nicht in den Nacken pressen, der Hals bleibt lang.","Nur kurz und nur, wenn es sich gut anfühlt. Ab der Mitte der Schwangerschaft eher weglassen.","knie-zur-brust"),
+X("sphinx","Sphinx","H","bauch","Rücken,Schultern",2,2,0,"","no","In Bauchlage die Unterarme parallel vor den Körper legen, die Ellbogen unter den Schultern. Die Brust hebt sich sanft, der Nacken bleibt lang. Ruhig atmen.","Eine Decke unter dem Becken macht es angenehmer.","","kind"),
+X("knie-zur-brust","Knie zur Brust (Apanasana)","HK","rueck","Rücken,Hüfte",1,2,0,"","mod","In Rückenlage die Knie zur Brust ziehen und mit den Händen umfassen. Sanft hin und her wiegen, der untere Rücken wird weich.","Die Beine einzeln heranziehen, wenn es zu viel ist.","Die Knie weit öffnen, damit der Bauch Platz hat."),
+/* ---- Ausklang ---- */
+X("liegende-drehung","Liegende Drehung","K","rueck","Rücken,Hüfte",1,4,1,"","mod","In Rückenlage die Knie anstellen und zur Seite sinken lassen. Die Arme öffnen sich, der Blick geht zur Gegenseite. Tief ausatmen.","Ein Kissen unter die Knie nehmen, wenn sie nicht ablegen.","Nur offen und weich. Die Knie auf Kissen ablegen."),
+X("glueckliches-baby","Glückliches Baby","K","rueck","Hüfte,Rücken",1,2,0,"","mod","In Rückenlage die Fußsohlen zur Decke, die Hände fassen Fußgelenke oder Schienbeine. Die Knie öffnen sich zu den Seiten. Sanft wiegen.","Ein Gurt um die Füße, wenn die Hände nicht reichen.","Die Knie weit öffnen. Nur, solange es angenehm ist."),
+X("beine-wand","Beine an der Wand","KE","rueck","Beine,Füße",1,5,0,"Wand","mod","Das Gesäß nahe an die Wand, die Beine liegen daran. Die Arme neben dem Körper, die Augen geschlossen. Die Beine werden schwer.","Eine Decke unter dem Becken kann helfen.","Nur kurz und mit erhöhtem Oberkörper. Bei Schwindel beenden."),
+X("beindehnung-gurt","Liegende Beindehnung mit Gurt","K","rueck","Beine",1,4,1,"Gurt","ok","In Rückenlage einen Fuß in den Gurt legen und das Bein sanft nach oben führen. Das andere Bein bleibt lang oder aufgestellt.","Das Knie darf gebeugt bleiben."),
+X("rueckenstreckung","Streckung in Rückenlage","K","rueck","Rücken,Schultern",1,2,0,"","ok","Die Arme über den Kopf, die Beine lang. Beim Einatmen sanft in beide Richtungen strecken, beim Ausatmen alles loslassen."),
+X("liegende-taube","Liegende Taube","K","rueck","Hüfte",1,4,1,"","mod","Ein Fußgelenk über das andere Knie legen und den Oberschenkel zur Brust ziehen. Das Becken bleibt weich auf dem Boden.","Der Fuß des unteren Beins bleibt am Boden aufgestellt.","Die Knie weit öffnen, kein Druck auf den Bauch."),
+X("summen","Summen (Bhramari sanft)","KS","sit","Atem,Geist",1,2,0,"","ok","Einatmen und beim Ausatmen sanft summen. Die Vibration in Brust und Kopf spüren. Einige Runden.","Die Lippen sind locker geschlossen, der Kiefer bleibt weich."),
+X("verlaengerte-ausatmung","Verlängerte Ausatmung","K","sit","Atem,Geist",1,3,0,"","ok","Auf vier zählen beim Einatmen, auf sechs beim Ausatmen. Nach einigen Runden wieder zum natürlichen Atem zurückkehren.","Wer schwindelig wird, atmet wieder normal."),
+/* ---- Tiefenentspannung ---- */
+X("savasana","Endentspannung (Savasana)","E","rueck","Geist,Ganzkörper,Atem",1,8,0,"","mod","In Rückenlage ankommen, Decke und Kissen nach Bedarf. Die Augen schließen, alle Muskeln loslassen. Der Körper wird schwer, der Atem darf frei fließen.","Eine Decke zum Zudecken bereithalten.","Ab der Mitte der Schwangerschaft in Seitenlage oder mit erhöhtem Oberkörper."),
+X("koerperreise","Körperreise (Body-Scan)","E","rueck","Geist,Ganzkörper",1,8,0,"","mod","Mit der Stimme durch den Körper führen: Füße, Beine, Becken, Bauch, Rücken, Brust, Arme, Gesicht. Jeweils kurz verweilen und loslassen.","Langsam sprechen und viele Pausen lassen.","Ab der Mitte der Schwangerschaft in Seitenlage oder mit erhöhtem Oberkörper."),
+X("atem-beobachten","Atem beobachten","E","rueck","Atem,Geist",1,6,0,"","mod","Den Atem einfach beobachten, ohne ihn zu verändern. Wenn die Gedanken wandern, freundlich zum Atem zurückkehren.","","Ab der Mitte der Schwangerschaft in Seitenlage oder mit erhöhtem Oberkörper."),
+X("fantasiereise","Kleine Fantasiereise","E","rueck","Geist",1,8,0,"","mod","Eine ruhige Bilderreise erzählen, zum Beispiel ein Waldweg, ein Strand oder ein warmes Licht. Die Gruppe folgt mit geschlossenen Augen.","Sanfte, einfache Bilder mit langen Pausen.","Ab der Mitte der Schwangerschaft in Seitenlage oder mit erhöhtem Oberkörper."),
+X("seitenlage","Ruhe in Seitenlage","EK","seite","Atem,Geist,Ganzkörper",1,6,0,"","ok","Seitlich einrollen, ein Kissen unter dem Kopf und eines zwischen den Knien. Die Arme liegen bequem. Atmen und nachspüren.","Eine Decke über den Körper legen.","Die ideale Ruheposition in der Schwangerschaft."),
+X("sitzende-ruhe","Ruhe im Sitzen","E","sit","Geist,Atem",1,5,0,"","ok","Bequem sitzen, auf dem Stuhl oder mit Kissen am Boden. Die Augen schließen und zur Ruhe kommen. Für alle, die nicht gut liegen können.","Eine Decke um die Schultern legen."),
+/* ---- Abschluss ---- */
+X("namaste","Gemeinsamer Abschluss","S","sit","Geist",1,2,0,"","ok","Langsam aufrichten, die Hände vor dem Herzen. Ein Moment des Dankes, dann gemeinsames Namaste oder ein stiller Abschluss."),
+X("dank-atem","Dankbarkeits-Atem","S","sit","Atem,Geist",1,2,0,"","ok","Drei tiefe Atemzüge. Mit jedem Ausatmen an etwas Dankbares denken, für sich oder für die Gruppe.")
+];
+
+(function(){
+"use strict";
+
+/* ---------- Konstanten ---------- */
+const PHS=[{c:"A",n:"Ankommen",f:.10},{c:"M",n:"Mobilisation",f:.20},{c:"H",n:"Haltungen",f:.40},{c:"K",n:"Ausklang",f:.13},{c:"E",n:"Tiefenentspannung",f:.13},{c:"S",n:"Abschluss",f:.04}];
+const PHN={};PHS.forEach(p=>PHN[p.c]=p.n);
+const POS={sit:"Sitzen",vier:"Vierfüßler",knie:"Kniend",stand:"Stehen",bauch:"Bauchlage",rueck:"Rückenlage",seite:"Seitenlage"};
+const RANK={A:{sit:0},M:{sit:0,vier:1,knie:1,stand:2},H:{vier:0,knie:0,stand:1,sit:2,bauch:3,rueck:4,seite:4},K:{sit:0,knie:0,rueck:1,seite:2},E:{rueck:0,seite:0,sit:1},S:{sit:0}};
+const FOCUS={"Ganzkörper":[],"Nacken & Schultern":["Nacken","Schultern","Arme"],"Rücken":["Rücken","Mitte"],"Hüfte & Beine":["Hüfte","Beine","Füße"],"Gleichgewicht":["Gleichgewicht","Beine","Füße"],"Atem & Ruhe":["Atem","Geist"]};
+const ENERGY=[["ruhig","Ruhig"],["ausgewogen","Ausgewogen"],["belebend","Belebend"]];
+const THEMES=["Ankommen und loslassen","Den eigenen Rhythmus finden","Weich werden","Mit dem Atem verbunden","Erdung und Stabilität","Raum im Körper","Gelassenheit","Kraft aus der Ruhe","Dankbarkeit","Leichtigkeit","Wärme und Weite","Im Hier und Jetzt","Geduld mit mir selbst","Zur Mitte finden","Freundlich zum eigenen Körper","Altes loslassen"];
+const ZONES=["Nacken","Schultern","Arme","Rücken","Mitte","Hüfte","Beine","Füße","Atem","Geist","Gleichgewicht","Ganzkörper"];
+const PREG={ok:"Schwangere: geeignet",mod:"Schwangere: mit Anpassung",no:"Nicht für Schwangere"};
+const MOODS=["Unruhig","Etwas müde","Gut","Entspannt","Tief entspannt"];
+const LS="softyoga-v1";
+
+/* ---------- Datum ---------- */
+const dayNum=d=>Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);
+const dow=n=>new Date(n*864e5).getUTCDay();
+const fmt=(n,o)=>new Intl.DateTimeFormat("de-DE",Object.assign({timeZone:"UTC"},o)).format(new Date(n*864e5));
+const today=()=>dayNum(new Date());
+const lab=n=>fmt(n,{weekday:"short"}).replace(".","")+", "+fmt(n,{day:"2-digit",month:"2-digit"})+".";
+const sd=n=>fmt(n,{day:"2-digit",month:"2-digit"});
+const iso=n=>new Date(n*864e5).toISOString().slice(0,10);
+const fromIso=s=>{const p=String(s).split("-").map(Number);return p.length===3&&!isNaN(p[0])?Math.floor(Date.UTC(p[0],p[1]-1,p[2])/864e5):today();};
+function nextMonday(){let n=today();while(dow(n)!==1)n++;return n;}
+
+/* ---------- Zustand ---------- */
+function fresh(){return {v:1,ts:0,set:{gurt:true,wand:true,avoid:2,len:60},fav:{},block:{},custom:[],lessons:[],draft:newDraft(60)};}
+function newDraft(len){return {id:"d"+Date.now(),date:nextMonday(),theme:THEMES[Math.floor(Math.random()*THEMES.length)],focus:"Ganzkörper",energy:"ausgewogen",preg:false,len:len||60,items:[],note:"",savedId:null};}
+let state=null,ui={tab:"plan",q:"",ph:"",pos:"",zone:"",favOnly:false,preg:false,rg:"A",m:"pax",sv:"zone"};
+function loadLocal(){try{const s=localStorage.getItem(LS);if(s){const o=JSON.parse(s);if(o&&o.set&&o.draft)return o;}}catch(e){}return null;}
+state=loadLocal()||fresh();
+function save(){state.ts=Date.now();try{localStorage.setItem(LS,JSON.stringify(state));}catch(e){}}
+
+/* ---------- Bibliothek ---------- */
+const lib=()=>LIB.concat(state.custom||[]);
+function byId(id){return lib().filter(e=>e.id===id)[0]||{id:id,name:"(gelöscht)",ph:[],pos:"sit",zone:["Ganzkörper"],int:1,min:3,sides:false,props:[],preg:"ok",how:"",tip:"",pn:"",ctr:null};}
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fnum=v=>String(Math.round(v*10)/10).replace(".",",");
+
+/* ---------- Generator ---------- */
+function targets(len){const t={};let sum=0;PHS.forEach(p=>{t[p.c]=Math.max(2,Math.round(len*p.f));sum+=t[p.c];});t.H+=len-sum;return t;}
+function lessonsSorted(){return state.lessons.slice().sort((a,b)=>b.date-a.date);}
+function makeCtx(){
+  const rec={},likes={};
+  lessonsSorted().forEach((l,i)=>{l.items.forEach(it=>{if(!rec[it.id])rec[it.id]={idx:i,last:l.date};});(l.liked||[]).forEach(id=>likes[id]=(likes[id]||0)+1);});
+  return {rec:rec,likes:likes};
+}
+function allowed(e,d,maxInt){
+  if(d.preg&&e.preg==="no")return false;
+  if(state.block[e.id])return false;
+  if(e.props.indexOf("Gurt")>=0&&!state.set.gurt)return false;
+  if(e.props.indexOf("Wand")>=0&&!state.set.wand)return false;
+  return e.int<=maxInt;
+}
+function score(e,d,ctx){
+  let s=Math.random();
+  const zs=FOCUS[d.focus]||[];
+  if(zs.length)s+=e.zone.some(z=>zs.indexOf(z)>=0)?1.8:-0.2;
+  if(state.fav[e.id])s+=1;
+  s+=Math.min(1,(ctx.likes[e.id]||0)*0.35);
+  const r=ctx.rec[e.id];
+  if(!r)s+=0.7;else if(r.idx<state.set.avoid)s-=3;else s+=Math.min(0.8,(today()-r.last)/56*0.8);
+  if(d.preg&&e.id==="seitenlage")s+=2;
+  return s;
+}
+function sortPhase(list,ph){
+  const rk=RANK[ph]||{},ids={};list.forEach(i=>ids[i.id]=1);
+  list.forEach(i=>{if(i.pairOf&&!ids[i.pairOf])delete i.pairOf;});
+  const parents=list.filter(i=>!i.pairOf);
+  parents.forEach((i,ix)=>{i._o=ix;});
+  parents.sort((a,b)=>{
+    let ra=rk[byId(a.id).pos],rb=rk[byId(b.id).pos];
+    if(ra===undefined)ra=5;if(rb===undefined)rb=5;
+    return ra-rb||a._o-b._o;
+  });
+  const out=[];
+  parents.forEach(p=>{delete p._o;out.push(p);list.filter(i=>i.pairOf===p.id).forEach(c=>out.push(c));});
+  return out;
+}
+function counterFor(e,d,used,maxInt){
+  for(const id of e.ctr||[]){const c=byId(id);if(!used[id]&&allowed(c,d,Math.max(maxInt,c.int)))return c;}
+  return null;
+}
+function fillPhase(d,ph,target,locked,used,ctx){
+  const maxInt={ruhig:1,ausgewogen:2,belebend:3}[d.energy]||2;
+  const inPh=e=>e.ph.indexOf(ph)>=0&&!used[e.id];
+  let pool=lib().filter(e=>inPh(e)&&allowed(e,d,maxInt));
+  if(pool.length<3)pool=lib().filter(e=>inPh(e)&&allowed(e,d,3));
+  const sc=pool.map(e=>({e:e,s:score(e,d,ctx)})).sort((a,b)=>b.s-a.s);
+  const chosen=locked.slice(),zc={};
+  let total=chosen.reduce((a,i)=>a+i.min,0);
+  chosen.forEach(i=>{used[i.id]=1;const z=byId(i.id).zone[0];zc[z]=(zc[z]||0)+1;});
+  const add=(e,extra)=>{const it={id:e.id,ph:ph,min:e.min,lock:false};if(extra)it.pairOf=extra;chosen.push(it);used[e.id]=1;total+=e.min;const z=e.zone[0];zc[z]=(zc[z]||0)+1;};
+  const base=chosen.length;
+  for(let pass=0;pass<2;pass++){
+    for(let k=0;k<sc.length&&total<target-0.5;k++){
+      const e=sc[k].e;if(used[e.id])continue;
+      if(pass===0&&(zc[e.zone[0]]||0)>=2)continue;
+      let need=e.min,cnt=null;
+      if(e.ctr&&!chosen.some(i=>e.ctr.indexOf(i.id)>=0)){cnt=counterFor(e,d,used,maxInt);if(!cnt)continue;need+=cnt.min;}
+      if(total+need>target+1.2&&chosen.length>base)continue;
+      add(e);if(cnt)add(cnt,e.id);
+    }
+  }
+  if(!chosen.length&&sc.length)add(sc[0].e);
+  return sortPhase(chosen,ph);
+}
+function generate(only){
+  const d=state.draft,tg=targets(d.len),ctx=makeCtx(),used={};
+  if(!d.theme)d.theme=THEMES[Math.floor(Math.random()*THEMES.length)];
+  if(only)d.items.filter(i=>i.ph!==only).forEach(i=>used[i.id]=1);
+  else d.items.filter(i=>i.lock).forEach(i=>used[i.id]=1);
+  let res=[];
+  PHS.forEach(p=>{
+    if(only&&p.c!==only){res=res.concat(d.items.filter(i=>i.ph===p.c));return;}
+    const locked=d.items.filter(i=>i.ph===p.c&&i.lock);
+    locked.forEach(i=>{delete used[i.id];});
+    res=res.concat(fillPhase(d,p.c,tg[p.c],locked,used,ctx));
+  });
+  let over=total(res)-d.len,g=0;
+  while(over>2&&g++<40){const c=res.filter(i=>i.ph==='H'||i.ph==='M').sort((a,b)=>b.min-a.min)[0];if(!c||c.min<=2)break;c.min--;over--;}
+  d.items=res;save();render();
+}
+const total=items=>items.reduce((a,i)=>a+i.min,0);
+
+/* ---------- Details / Bausteine ---------- */
+function links(e){const q=encodeURIComponent(e.name+" Yoga");return '<div class="xl"><a href="https://www.google.com/search?tbm=isch&q='+q+'" target="_blank" rel="noopener">Bilder ansehen</a><a href="https://www.youtube.com/results?search_query='+q+'" target="_blank" rel="noopener">Video ansehen</a></div>';}
+function detail(e){
+  let h='<div class="det"><p><b>So geht es</b>'+esc(e.how||"Noch keine Beschreibung.")+'</p>';
+  if(e.tip)h+='<p><b>Tipp</b>'+esc(e.tip)+'</p>';
+  if(e.pn)h+='<p><b>Schwangere</b>'+esc(e.pn)+'</p>';
+  if(e.props.length)h+='<p><b>Hilfsmittel</b>'+esc(e.props.join(", "))+'</p>';
+  h+='<p class="chips-line">'+POS[e.pos]+' · '+e.zone.join(", ")+' · Intensität '+["","sehr sanft","sanft","kräftiger"][e.int]+(e.sides?' · je Seite':'')+'</p>'+links(e)+'</div>';
+  return h;
+}
+function pregBadge(e){return e.preg==="ok"?"":'<span class="pill '+(e.preg==="no"?"warn":"")+'">'+(e.preg==="no"?"Nicht für Schwangere":"Schwangere anpassen")+'</span>';}
+const ICO={lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>',swap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg>',up:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>',down:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',del:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',re:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 10-2.3 5.7M20 4v7h-7"/></svg>',plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',heart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20s-7-4.5-7-10a4 4 0 017-2.5A4 4 0 0119 10c0 5.5-7 10-7 10z"/></svg>',chev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>'};
+const chip=(act,val,cur,text,extra)=>'<button class="chip" data-act="'+act+'" data-v="'+esc(val)+'" aria-pressed="'+(cur===val)+'"'+(extra||"")+'>'+esc(text)+'</button>';
+
+/* ---------- Planen ---------- */
+function viewPlan(){
+  const d=state.draft,t=total(d.items),has=d.items.length>0;
+  let h='<section class="card ctl"><div class="row dates"><button class="icon" data-act="dateM" data-d="-7" aria-label="Eine Woche zurück">'+ICO.chev.replace('<svg','<svg style="transform:rotate(90deg)"')+'</button><div class="grow"><div class="eyebrow">Stunde am</div><div class="bigdate">'+fmt(d.date,{weekday:"long",day:"numeric",month:"long"})+'</div></div><button class="icon" data-act="dateM" data-d="7" aria-label="Eine Woche weiter">'+ICO.chev.replace('<svg','<svg style="transform:rotate(-90deg)"')+'</button></div>';
+  h+='<div class="theme"><span class="eyebrow">Leitgedanke</span><div class="row"><div class="grow quote">'+esc(d.theme||"–")+'</div><button class="icon" data-act="theme" aria-label="Anderer Leitgedanke">'+ICO.re+'</button></div></div>';
+  h+='<div class="eyebrow mt">Schwerpunkt</div><div class="chips scroll">'+Object.keys(FOCUS).map(f=>chip("focus",f,d.focus,f)).join("")+'</div>';
+  h+='<div class="eyebrow mt">Stimmung der Stunde</div><div class="seg">'+ENERGY.map(e=>chip("energy",e[0],d.energy,e[1])).join("")+'</div>';
+  h+='<div class="row opts"><button class="chip" data-act="preg" aria-pressed="'+d.preg+'">Schwangere dabei</button><label class="len">Länge <select data-sel="len">'+[45,60,75,90].map(n=>'<option'+(n===d.len?' selected':'')+'>'+n+'</option>').join("")+'</select> min</label></div>';
+  h+='<button class="btn big" data-act="gen">'+(has?'Neu vorschlagen':'Stunde vorschlagen')+'</button>';
+  if(has&&d.items.some(i=>i.lock))h+='<p class="note">Gesperrte Übungen bleiben beim neuen Vorschlag erhalten.</p>';
+  h+='</section>';
+  if(!has){
+    h+='<section class="card empty"><div class="lotus">'+lotus()+'</div><p>Tippe auf „Stunde vorschlagen“. Die App stellt einen sanften, aufeinander abgestimmten Ablauf zusammen. Du kannst jede Übung austauschen, sperren, verschieben oder in der Länge ändern.</p></section>';
+    return h;
+  }
+  h+='<div class="sum"><span>Gesamtdauer</span><b class="'+(Math.abs(t-d.len)>3?'off':'')+'">'+t+' von '+d.len+' min</b></div>';
+  PHS.forEach(p=>{
+    const idx=[];d.items.forEach((it,i)=>{if(it.ph===p.c)idx.push(i);});
+    h+='<section class="card phase"><div class="ph-h"><div><span class="dot ph'+p.c+'"></span><b>'+p.n+'</b><span class="mut"> · '+idx.reduce((a,i)=>a+d.items[i].min,0)+' min</span></div><div class="row g"><button class="icon sm" data-act="regen" data-p="'+p.c+'" aria-label="'+p.n+' neu würfeln">'+ICO.re+'</button><button class="icon sm" data-act="addp" data-p="'+p.c+'" aria-label="Übung hinzufügen">'+ICO.plus+'</button></div></div>';
+    if(!idx.length)h+='<p class="note">Keine Übung in diesem Abschnitt.</p>';
+    idx.forEach(i=>{
+      const it=d.items[i],e=byId(it.id);
+      h+='<div class="it'+(it.lock?' locked':'')+'" data-i="'+i+'"><div class="it-top"><button class="it-main" data-act="exp"><span class="nm">'+esc(e.name)+(it.lock?'<span class="lk">'+ICO.lock+'</span>':'')+'</span><span class="mt">'+POS[e.pos]+' · '+e.zone.slice(0,2).join(", ")+(e.sides?' · je Seite':'')+'</span></button><div class="mn"><button data-act="dm" data-d="-1" aria-label="Eine Minute weniger">−</button><b>'+it.min+'′</b><button data-act="dm" data-d="1" aria-label="Eine Minute mehr">+</button></div></div>'+
+        (d.preg||e.preg==="no"?'<div class="badges">'+(d.preg?pregBadge(e):'')+'</div>':'')+
+        '<div class="more" hidden>'+detail(e)+(d.preg&&e.preg!=="ok"?'':'')+'<div class="tools"><button data-act="lock">'+ICO.lock+(it.lock?'Entsperren':'Sperren')+'</button><button data-act="swap">'+ICO.swap+'Austauschen</button><button data-act="mv" data-d="-1">'+ICO.up+'Hoch</button><button data-act="mv" data-d="1">'+ICO.down+'Runter</button><button data-act="del" class="danger">'+ICO.del+'Entfernen</button></div></div></div>';
+    });
+    h+='</section>';
+  });
+  h+='<section class="card"><label class="eyebrow" for="pnote">Notiz zur Stunde</label><textarea id="pnote" rows="2" placeholder="Zum Beispiel: Musik, Material, Besonderheiten">'+esc(d.note||"")+'</textarea></section>';
+  h+='<div class="actions"><button class="btn" data-act="run">Stunde durchführen</button><div class="row two"><button class="btn ghost" data-act="saveplan">'+(d.savedId?'Speichern':'Als geplant speichern')+'</button><button class="btn ghost" data-act="copy">Als Text kopieren</button></div></div>';
+  return h;
+}
+function lotus(){return '<svg viewBox="0 0 120 80" width="120" height="80" aria-hidden="true"><g fill="none" stroke="#5f8a72" stroke-width="2.2" stroke-linejoin="round"><path d="M60 70C48 58 48 32 60 14c12 18 12 44 0 56z" fill="#dfeadf"/><path d="M60 70C42 66 30 50 30 32c14 4 26 18 30 38z" fill="#eaf1e6"/><path d="M60 70c18-4 30-20 30-38-14 4-26 18-30 38z" fill="#eaf1e6"/><path d="M60 70C36 72 18 62 10 46c18-2 38 6 50 24z" fill="#f3f6ef"/><path d="M60 70c24 2 42-8 50-24-18-2-38 6-50 24z" fill="#f3f6ef"/></g></svg>';}
+
+/* ---------- Übungen ---------- */
+function libItems(){
+  const q=ui.q.trim().toLowerCase();
+  return lib().filter(e=>(!ui.ph||e.ph.indexOf(ui.ph)>=0)&&(!ui.pos||e.pos===ui.pos)&&(!ui.zone||e.zone.indexOf(ui.zone)>=0)&&(!ui.favOnly||state.fav[e.id])&&(!ui.preg||e.preg!=="no")&&(!q||(e.name+" "+e.zone.join(" ")+" "+e.how).toLowerCase().indexOf(q)>=0)).sort((a,b)=>a.name.localeCompare(b.name,"de"));
+}
+function libList(){
+  const L=libItems();
+  if(!L.length)return '<div class="card empty"><p>Keine Übung passt zu diesem Filter.</p></div>';
+  return '<section class="card">'+L.map(e=>'<div class="lx'+(state.block[e.id]?' blocked':'')+'" data-id="'+esc(e.id)+'"><div class="it-top"><button class="it-main" data-act="exp"><span class="nm">'+esc(e.name)+(state.custom.some(c=>c.id===e.id)?' <span class="pill">eigene</span>':'')+'</span><span class="mt">'+e.ph.map(c=>PHN[c]).join(", ")+' · '+POS[e.pos]+' · '+e.min+' min</span></button><button class="icon sm'+(state.fav[e.id]?' on':'')+'" data-act="fav" aria-label="Favorit">'+ICO.heart+'</button></div><div class="badges">'+pregBadge(e)+(state.block[e.id]?'<span class="pill warn">gesperrt</span>':'')+'</div><div class="more" hidden>'+detail(e)+'<div class="tools"><button data-act="addlib">'+ICO.plus+'Zum Plan</button><button data-act="block">'+ICO.lock+(state.block[e.id]?'Wieder erlauben':'Nie vorschlagen')+'</button>'+(state.custom.some(c=>c.id===e.id)?'<button data-act="delcustom" class="danger">'+ICO.del+'Löschen</button>':'')+'</div></div></div>').join("")+'</section>';
+}
+function viewLib(){
+  let h='<section class="card ctl"><input type="search" id="q" class="search" placeholder="Übung suchen" value="'+esc(ui.q)+'" aria-label="Übung suchen"><div class="chips scroll mt">'+chip("fph","",ui.ph,"Alle")+PHS.map(p=>chip("fph",p.c,ui.ph,p.n)).join("")+'</div><div class="row filters"><select data-sel="pos" aria-label="Position"><option value="">Alle Positionen</option>'+Object.keys(POS).map(k=>'<option value="'+k+'"'+(ui.pos===k?' selected':'')+'>'+POS[k]+'</option>').join("")+'</select><select data-sel="zone" aria-label="Körperbereich"><option value="">Alle Bereiche</option>'+ZONES.map(z=>'<option'+(ui.zone===z?' selected':'')+'>'+z+'</option>').join("")+'</select></div><div class="chips mt"><button class="chip" data-act="favOnly" aria-pressed="'+ui.favOnly+'">Favoriten</button><button class="chip" data-act="pregOnly" aria-pressed="'+ui.preg+'">Schwangere geeignet</button></div></section>';
+  h+='<div id="liblist">'+libList()+'</div><button class="btn ghost" data-act="newex" style="margin-top:6px">+ Eigene Übung anlegen</button>';
+  return h;
+}
+
+/* ---------- Stunden ---------- */
+function viewLessons(){
+  const L=lessonsSorted();
+  if(!L.length)return '<section class="card empty"><div class="lotus">'+lotus()+'</div><p>Hier erscheinen deine geplanten und gehaltenen Stunden. Speichere im Planer eine Stunde oder führe sie direkt durch.</p></section>';
+  return '<section class="card">'+L.map(l=>{
+    const open=ui.open===l.id;
+    return '<div class="ls" data-id="'+l.id+'"><button class="ls-h" data-act="lopen"><span class="dt">'+lab(l.date)+'</span><span class="grow"><b>'+esc(l.theme||"Stunde")+'</b><span class="mt">'+total(l.items)+' min · '+l.items.length+' Übungen · '+esc(l.focus)+(l.preg?' · Schwangere':'')+'</span></span><span class="pill '+(l.status==="gehalten"?"ok":"")+'">'+(l.status==="gehalten"?"gehalten":"geplant")+'</span></button>'+
+      (open?'<div class="ls-b">'+(l.status==="gehalten"?'<p class="mt2">'+(l.pax!=null?l.pax+' Teilnehmende':'Teilnehmerzahl offen')+(l.mood?' · Stimmung: '+MOODS[l.mood-1]:'')+'</p>':'')+(l.note?'<p class="mt2">'+esc(l.note)+'</p>':'')+PHS.map(p=>{const its=l.items.filter(i=>i.ph===p.c);return its.length?'<div class="lph"><b>'+p.n+'</b>'+its.map(i=>'<div>'+esc(byId(i.id).name)+' <span class="mut">'+i.min+'′</span>'+((l.liked||[]).indexOf(i.id)>=0?' <span class="hrt">'+ICO.heart+'</span>':'')+'</div>').join("")+'</div>':'';}).join("")+
+        '<div class="tools"><button data-act="lload">In den Planer laden</button>'+(l.status!=="gehalten"?'<button data-act="lrun">Durchführen</button>':'')+'<button data-act="lfb">'+(l.status==="gehalten"?'Feedback ändern':'Als gehalten eintragen')+'</button><button data-act="ldel" class="danger">'+ICO.del+'Löschen</button></div></div>':'')+'</div>';
+  }).join("")+'</section>';
+}
+
+/* ---------- Auswertung ---------- */
+function held(){const t=today(),days={M:30,Q:90,Y:365}[ui.rg];return state.lessons.filter(l=>l.status==="gehalten"&&(!days||l.date>t-days)).sort((a,b)=>a.date-b.date);}
+function lineChart(pts,min0,max0){
+  const W=320,H=170,L=34,R=14,T=22,B=26,c=pts.length;
+  const ys=pts.map(p=>p.v);let mn=min0!=null?min0:Math.min.apply(null,ys),mx=max0!=null?max0:Math.max.apply(null,ys);
+  if(mn===mx){mn-=1;mx+=1;}
+  if(min0==null){const pd=(mx-mn)*0.2;mn=Math.max(0,mn-pd);mx+=pd;}
+  const X=i=>c===1?L+(W-L-R)/2:L+(W-L-R)*i/(c-1),Y=v=>T+(H-T-B)*(1-(v-mn)/(mx-mn)),F='style="font-family:var(--body)"';
+  let g='';for(let k=0;k<=3;k++){const v=mn+(mx-mn)*k/3,y=Y(v);g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" stroke="#dde4da"/><text x="'+(L-6)+'" y="'+(y+4)+'" text-anchor="end" fill="#6b7a70" font-size="10" '+F+'>'+fnum(v)+'</text>';}
+  const line=pts.map((p,i)=>X(i)+','+Y(p.v)).join(" ");
+  const area=c>1?'<polygon points="'+X(0)+','+(H-B)+' '+line+' '+X(c-1)+','+(H-B)+'" fill="#5f8a72" opacity=".14"/>':'';
+  const dots=pts.map((p,i)=>'<circle cx="'+X(i)+'" cy="'+Y(p.v)+'" r="'+(i===c-1?5:3.5)+'" fill="#5f8a72"'+(i===c-1?' stroke="#fff" stroke-width="2"':'')+'/>').join("");
+  let lab2='<text x="'+X(c-1)+'" y="'+(Y(pts[c-1].v)-10)+'" text-anchor="'+(c===1?'middle':'end')+'" fill="#24312a" font-size="12" font-weight="700" '+F+'>'+fnum(pts[c-1].v)+'</text>';
+  let xl='<text x="'+X(0)+'" y="'+(H-8)+'" text-anchor="'+(c===1?'middle':'start')+'" fill="#6b7a70" font-size="10" '+F+'>'+sd(pts[0].n)+'</text>';
+  if(c>1)xl+='<text x="'+X(c-1)+'" y="'+(H-8)+'" text-anchor="end" fill="#6b7a70" font-size="10" '+F+'>'+sd(pts[c-1].n)+'</text>';
+  return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="Verlauf">'+g+area+(c>1?'<polyline points="'+line+'" fill="none" stroke="#5f8a72" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>':'')+dots+lab2+xl+'</svg>';
+}
+function hbars(items,unit){
+  if(!items.length)return '<p class="note">Noch keine Daten.</p>';
+  const mx=Math.max.apply(null,items.map(i=>i.v))||1;
+  return '<div class="hb">'+items.map(i=>'<div class="hb-r"><span class="hb-l">'+esc(i.label)+'</span><span class="hb-t"><i style="width:'+Math.max(3,i.v/mx*100)+'%"></i></span><span class="hb-v">'+fnum(i.v)+(unit||'')+'</span></div>').join("")+'</div>';
+}
+function viewStats(){
+  const all=state.lessons.filter(l=>l.status==="gehalten");
+  const H=held();
+  let h='<div class="chips" style="margin-bottom:12px">'+[["M","Monat"],["Q","3 Monate"],["Y","Jahr"],["A","Alles"]].map(x=>chip("rg",x[0],ui.rg,x[1])).join("")+'</div>';
+  const withPax=H.filter(l=>l.pax!=null),withMood=H.filter(l=>l.mood);
+  const avg=(a,f)=>a.length?a.reduce((s,x)=>s+f(x),0)/a.length:null;
+  const ap=avg(withPax,l=>l.pax),am=avg(withMood,l=>l.mood);
+  h+='<div class="stats"><div class="stat"><b>'+H.length+'</b><span>Stunden</span></div><div class="stat"><b>'+(ap==null?'–':fnum(ap))+'</b><span>Ø Teilnehmende</span></div><div class="stat"><b>'+(am==null?'–':fnum(am))+'</b><span>Ø Stimmung (1–5)</span></div></div>';
+  if(!all.length)return h+'<section class="card empty"><div class="lotus">'+lotus()+'</div><p>Die Auswertung füllt sich, sobald du Stunden als „gehalten“ einträgst. Nach dem Durchführen fragt die App kurz nach Teilnehmenden und Stimmung.</p></section>';
+  if(!H.length)return h+'<section class="card empty"><p>Im gewählten Zeitraum gibt es keine gehaltene Stunde. Wähle einen längeren Zeitraum.</p></section>';
+  h+='<section class="card"><div class="eyebrow">Entwicklung</div><div class="chips" style="margin:8px 0 6px">'+chip("m","pax",ui.m,"Teilnehmende")+chip("m","mood",ui.m,"Stimmung")+'</div>';
+  const pts=(ui.m==="pax"?withPax:withMood).map(l=>({n:l.date,v:ui.m==="pax"?l.pax:l.mood}));
+  h+=pts.length?lineChart(pts,ui.m==="mood"?1:0,ui.m==="mood"?5:null):'<p class="note">Für diese Ansicht fehlen noch Angaben.</p>';
+  if(pts.length>1){const df=pts[pts.length-1].v-pts[0].v;h+='<p class="note"><b class="'+(df>=0?'up':'')+'">'+(df>=0?'+':'')+fnum(df)+'</b> seit der ersten Stunde im Zeitraum ('+fnum(pts[0].v)+' → '+fnum(pts[pts.length-1].v)+')</p>';}
+  h+='</section>';
+  const cnt={},lk={};
+  H.forEach(l=>{l.items.forEach(i=>{cnt[i.id]=(cnt[i.id]||0)+1;});(l.liked||[]).forEach(id=>lk[id]=(lk[id]||0)+1);});
+  const top=Object.keys(cnt).map(id=>({label:byId(id).name,v:cnt[id]})).sort((a,b)=>b.v-a.v).slice(0,8);
+  h+='<section class="card"><div class="eyebrow">Am häufigsten genutzt</div>'+hbars(top,'×')+'</section>';
+  const liked=Object.keys(lk).map(id=>({label:byId(id).name,v:lk[id]})).sort((a,b)=>b.v-a.v).slice(0,6);
+  if(liked.length)h+='<section class="card"><div class="eyebrow">Kam gut an</div>'+hbars(liked,'×')+'</section>';
+  const mins={};
+  H.forEach(l=>l.items.forEach(i=>{const e=byId(i.id);const k=ui.sv==="zone"?e.zone[0]:ui.sv==="pos"?POS[e.pos]:PHN[i.ph];mins[k]=(mins[k]||0)+i.min;}));
+  const dist=Object.keys(mins).map(k=>({label:k,v:mins[k]/H.length})).sort((a,b)=>b.v-a.v);
+  h+='<section class="card"><div class="eyebrow">Verteilung pro Stunde (Minuten)</div><div class="chips" style="margin:8px 0 8px">'+chip("sv","zone",ui.sv,"Körperbereich")+chip("sv","pos",ui.sv,"Position")+chip("sv","ph",ui.sv,"Phase")+'</div>'+hbars(dist,' min')+'</section>';
+  const last={};
+  all.forEach(l=>l.items.forEach(i=>{if(!last[i.id]||last[i.id]<l.date)last[i.id]=l.date;}));
+  const t=today();
+  const rest=lib().filter(e=>!state.block[e.id]).map(e=>({e:e,d:last[e.id]})).filter(x=>!x.d||t-x.d>=28).sort((a,b)=>(a.d||0)-(b.d||0)).slice(0,8);
+  h+='<section class="card"><div class="eyebrow">Lange nicht dran</div>'+(rest.length?rest.map(x=>'<div class="lr"><span>'+esc(x.e.name)+'</span><span class="mut">'+(x.d?'vor '+Math.round((t-x.d)/7)+' Wochen':'noch nie')+'</span></div>').join(""):'<p class="note">Du hast die ganze Bibliothek in letzter Zeit genutzt.</p>')+'</section>';
+  return h;
+}
+
+/* ---------- Render ---------- */
+function render(){
+  document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-current",b.dataset.tab===ui.tab?"page":"false"));
+  const v=document.getElementById("view");
+  v.innerHTML=ui.tab==="plan"?viewPlan():ui.tab==="lib"?viewLib():ui.tab==="ls"?viewLessons():viewStats();
+}
+
+/* ---------- Sheets ---------- */
+function openSheet(html){document.getElementById("sheetIn").innerHTML=html;document.getElementById("sheet").classList.add("on");document.getElementById("veil").classList.add("on");}
+function closeSheet(){document.getElementById("sheet").classList.remove("on");document.getElementById("veil").classList.remove("on");}
+function pickSheet(title,list,mode,ph){
+  openSheet('<h3>'+title+'</h3><div class="pick">'+list.map(e=>'<button class="pk" data-act="'+mode+'" data-id="'+esc(e.id)+'" data-p="'+ph+'"><b>'+esc(e.name)+'</b><span class="mt">'+POS[e.pos]+' · '+e.zone.slice(0,2).join(", ")+' · '+e.min+' min'+(state.draft.preg&&e.preg!=="ok"?' · Schwangere anpassen':'')+'</span></button>').join("")+(list.length?'':'<p class="note">Keine passenden Übungen.</p>')+'</div><div class="btns"><button class="btn ghost" data-act="closeSheet">Abbrechen</button></div>');
+}
+function candidates(ph,excludeId){
+  const d=state.draft,used={};d.items.forEach(i=>{if(i.id!==excludeId)used[i.id]=1;});
+  return lib().filter(e=>e.ph.indexOf(ph)>=0&&!used[e.id]&&!state.block[e.id]&&!(d.preg&&e.preg==="no")&&e.id!==excludeId);
+}
+function settingsSheet(){
+  const s=state.set;
+  openSheet('<h3>Einstellungen</h3><div class="set"><div class="eyebrow">Hilfsmittel im Raum</div><div class="chips"><button class="chip" data-act="setp" data-v="gurt" aria-pressed="'+s.gurt+'">Gurt oder Tuch</button><button class="chip" data-act="setp" data-v="wand" aria-pressed="'+s.wand+'">Freie Wand</button></div><p class="note">Übungen, die eines davon brauchen, werden sonst nicht vorgeschlagen.</p>'+
+  '<div class="eyebrow mt">Standardlänge</div><div class="chips">'+[45,60,75,90].map(n=>'<button class="chip" data-act="setlen" data-v="'+n+'" aria-pressed="'+(s.len===n)+'">'+n+' min</button>').join("")+'</div>'+
+  '<div class="eyebrow mt">Wiederholungen vermeiden</div><div class="chips">'+[0,1,2,3,4].map(n=>'<button class="chip" data-act="setavoid" data-v="'+n+'" aria-pressed="'+(s.avoid===n)+'">'+(n===0?'aus':'letzte '+n)+'</button>').join("")+'</div><p class="note">Übungen aus den letzten Stunden werden seltener vorgeschlagen.</p>'+
+  '<div class="eyebrow mt">Erinnerung</div><button class="btn ghost" data-act="ics">Wöchentlich im Kalender erinnern</button><p class="note">Lädt einen Kalendereintrag für jeden Sonntag um 19 Uhr herunter: „Soft Yoga planen“.</p>'+
+  '<div class="eyebrow mt">Sicherung</div><div class="row two"><button class="btn ghost" data-act="export">Sicherung speichern</button><button class="btn ghost" data-act="import">Sicherung einspielen</button></div><p class="note">Deine Daten liegen nur auf diesem Gerät. Speichere ab und zu eine Sicherung.</p>'+
+  '<p class="note disc">Die Vorschläge sind Anregungen. Du entscheidest nach Erfahrung und Gruppe. Hinweise zur Schwangerschaft ersetzen keine Beratung durch Ärztin oder Hebamme.</p></div><div class="btns"><button class="btn" data-act="closeSheet">Fertig</button></div>');
+}
+function newExSheet(){
+  openSheet('<h3>Eigene Übung</h3><div class="form"><label>Name<input type="text" id="ne-name" placeholder="Name der Übung"></label><div class="eyebrow">Passt in Phase</div><div class="chips" id="ne-ph">'+PHS.map(p=>'<button class="chip" data-act="nephase" data-v="'+p.c+'" aria-pressed="false">'+p.n+'</button>').join("")+'</div><div class="row two"><label>Position<select id="ne-pos">'+Object.keys(POS).map(k=>'<option value="'+k+'">'+POS[k]+'</option>').join("")+'</select></label><label>Bereich<select id="ne-zone">'+ZONES.map(z=>'<option>'+z+'</option>').join("")+'</select></label></div><div class="row two"><label>Minuten<input type="number" id="ne-min" value="3" min="1" max="20" inputmode="numeric"></label><label>Schwangere<select id="ne-preg"><option value="ok">geeignet</option><option value="mod">mit Anpassung</option><option value="no">nicht geeignet</option></select></label></div><label>Beschreibung<textarea id="ne-how" rows="3" placeholder="Kurze Anleitung"></textarea></label></div><div class="btns"><button class="btn ghost" data-act="closeSheet">Abbrechen</button><button class="btn" data-act="nesave">Speichern</button></div>');
+}
+function feedbackSheet(id){
+  const l=state.lessons.filter(x=>x.id===id)[0];if(!l)return;
+  openSheet('<h3>Wie war die Stunde?</h3><div class="form" data-lid="'+id+'"><label>Datum<input type="date" id="fb-date" value="'+iso(l.status==="gehalten"?l.date:Math.min(l.date,today())>0&&l.date<=today()?l.date:today())+'"></label>'+
+    '<div class="eyebrow">Teilnehmende</div><div class="stepper"><button data-act="pax" data-d="-1" aria-label="Weniger">−</button><input type="number" id="fb-pax" inputmode="numeric" min="0" max="40" value="'+(l.pax!=null?l.pax:'')+'" placeholder="–"><button data-act="pax" data-d="1" aria-label="Mehr">+</button></div>'+
+    '<div class="eyebrow mt">Stimmung der Gruppe</div><div class="moods" id="fb-mood">'+[1,2,3,4,5].map(n=>'<button class="chip" data-act="mood" data-v="'+n+'" aria-pressed="'+(l.mood===n)+'">'+n+'</button>').join("")+'</div><p class="note" id="fb-ml">'+(l.mood?MOODS[l.mood-1]:'1 = unruhig, 5 = tief entspannt')+'</p>'+
+    '<div class="eyebrow mt">Was kam besonders gut an?</div><div class="likes" id="fb-likes">'+l.items.map(i=>'<button class="lk-b" data-act="like" data-id="'+esc(i.id)+'" aria-pressed="'+((l.liked||[]).indexOf(i.id)>=0)+'">'+ICO.heart+esc(byId(i.id).name)+'</button>').join("")+'</div>'+
+    '<label class="mt">Notiz<textarea id="fb-note" rows="3" placeholder="Was möchtest du dir merken?">'+esc(l.note||"")+'</textarea></label></div><div class="btns"><button class="btn ghost" data-act="closeSheet">Später</button><button class="btn" data-act="fbsave">Speichern</button></div>');
+}
+
+/* ---------- Stunden speichern ---------- */
+function saveDraft(status){
+  const d=state.draft;let l=state.lessons.filter(x=>x.id===d.savedId)[0];
+  if(!l){l={id:"l"+Date.now(),status:"geplant"};state.lessons.push(l);d.savedId=l.id;}
+  Object.assign(l,{date:d.date,theme:d.theme,focus:d.focus,energy:d.energy,preg:d.preg,len:d.len,items:JSON.parse(JSON.stringify(d.items)),note:d.note});
+  if(status)l.status=status;
+  save();return l;
+}
+function lessonToDraft(l){
+  state.draft={id:"d"+Date.now(),date:l.date<today()?nextMonday():l.date,theme:l.theme,focus:l.focus,energy:l.energy,preg:l.preg,len:l.len||60,items:JSON.parse(JSON.stringify(l.items)),note:l.note||"",savedId:l.status==="gehalten"?null:l.id};
+  save();
+}
+
+/* ---------- Durchführen ---------- */
+let run=null,actx=null,wl=null;
+function unlockAudio(){try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;actx=actx||new AC();if(actx.state==="suspended")actx.resume();}catch(e){}}
+function chime(){
+  if(!actx)return;
+  [0,0.9].forEach((at,k)=>{try{const o=actx.createOscillator(),g=actx.createGain(),t=actx.currentTime+at;o.type="sine";o.frequency.value=k?660:528;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.7,t+0.03);g.gain.exponentialRampToValueAtTime(0.0001,t+2.2);o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+2.3);}catch(e){}});
+  try{if(navigator.vibrate)navigator.vibrate([200,100,200]);}catch(e){}
+}
+async function lockScreen(){try{if(navigator.wakeLock&&run&&!wl){wl=await navigator.wakeLock.request("screen");wl.addEventListener("release",()=>{wl=null;});}}catch(e){}}
+function unlockScreen(){try{if(wl)wl.release();}catch(e){}wl=null;}
+function mmss(ms){const s=Math.abs(Math.round(ms/1000));return (ms<0?"+":"")+Math.floor(s/60)+":"+String(s%60).padStart(2,"0");}
+function startRun(items,lessonId){
+  if(!items.length)return;
+  unlockAudio();
+  run={items:items,i:0,rem:items[0].min*60000,last:Date.now(),paused:false,chimed:false,lessonId:lessonId,start:Date.now(),t:null};
+  run.t=setInterval(runTick,250);lockScreen();
+  document.getElementById("run").classList.add("on");document.body.classList.add("noscroll");
+  drawRun();
+}
+function runTick(){
+  if(!run)return;
+  const now=Date.now();if(!run.paused)run.rem-=now-run.last;run.last=now;
+  if(run.rem<=0&&!run.chimed){run.chimed=true;chime();}
+  const el=document.getElementById("rt");if(el){el.textContent=mmss(run.rem);el.classList.toggle("over",run.rem<0);}
+  const all=document.getElementById("rtot");if(all)all.textContent=Math.floor((now-run.start)/60000)+" min vergangen";
+}
+function drawRun(){
+  const it=run.items[run.i],e=byId(it.id),last=run.i===run.items.length-1,nx=run.items[run.i+1];
+  document.getElementById("runIn").innerHTML='<div class="r-top"><span class="pill">'+PHN[it.ph]+'</span><span class="mut">'+(run.i+1)+' von '+run.items.length+'</span></div>'+
+    '<h2>'+esc(e.name)+'</h2><p class="mt">'+POS[e.pos]+(e.sides?' · beide Seiten':'')+'</p><div class="rtime" id="rt">'+mmss(run.rem)+'</div><div class="mut" id="rtot"></div>'+
+    '<div class="rhow">'+esc(e.how||"")+(e.tip?'<br><span class="mut">Tipp: '+esc(e.tip)+'</span>':'')+(state.draft.preg&&e.pn?'<br><span class="mut">Schwangere: '+esc(e.pn)+'</span>':'')+'</div>'+
+    '<div class="rbtns"><button class="btn ghost" data-act="rprev"'+(run.i===0?' disabled':'')+'>Zurück</button><button class="btn ghost" data-act="rpause">'+(run.paused?'Weiter':'Pause')+'</button><button class="btn" data-act="'+(last?'rend':'rnext')+'">'+(last?'Fertig':'Nächste')+'</button></div>'+
+    '<p class="mut next">'+(nx?'Danach: '+esc(byId(nx.id).name)+' ('+nx.min+' min)':'Das war die letzte Übung')+'</p><button class="link" data-act="rquit">Beenden</button>';
+  runTick();
+}
+function closeRun(){clearInterval(run&&run.t);run=null;unlockScreen();document.getElementById("run").classList.remove("on");document.body.classList.remove("noscroll");}
+function finishRun(){
+  const l=saveDraft();l.status="gehalten";if(l.date>today())l.date=today();
+  save();closeRun();render();feedbackSheet(l.id);
+}
+
+/* ---------- Text, ICS, Backup ---------- */
+function asText(d){
+  let t="Soft Yoga · "+fmt(d.date,{weekday:"long",day:"numeric",month:"long"})+"\nLeitgedanke: "+d.theme+"\nSchwerpunkt: "+d.focus+" · "+d.len+" min"+(d.preg?" · Schwangere dabei":"")+"\n";
+  PHS.forEach(p=>{const its=d.items.filter(i=>i.ph===p.c);if(!its.length)return;t+="\n"+p.n+" ("+total(its)+" min)\n";its.forEach(i=>{const e=byId(i.id);t+="• "+e.name+" – "+i.min+" min"+(e.sides?" (je Seite)":"")+"\n";});});
+  if(d.note)t+="\nNotiz: "+d.note+"\n";
+  return t;
+}
+function download(name,type,content){try{const b=new Blob([content],{type:type}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);}catch(e){}}
+function icsFile(){
+  let n=today();while(dow(n)!==0)n++;
+  const ds=iso(n).replace(/-/g,"");
+  return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Soft Yoga Planer//DE","BEGIN:VEVENT","UID:softyoga-planen@planer","DTSTAMP:"+new Date().toISOString().replace(/[-:]/g,"").slice(0,15)+"Z","DTSTART;TZID=Europe/Berlin:"+ds+"T190000","DTEND;TZID=Europe/Berlin:"+ds+"T193000","RRULE:FREQ=WEEKLY;BYDAY=SU","SUMMARY:Soft Yoga planen","DESCRIPTION:Stunde für Montag 17 bis 18 Uhr vorbereiten.","BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:Soft Yoga planen","TRIGGER:PT0M","END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n");
+}
+
+/* ---------- Ereignisse ---------- */
+document.addEventListener("click",ev=>{
+  const tb=ev.target.closest(".tab");
+  if(tb){ui.tab=tb.dataset.tab;try{history.replaceState(null,"","#"+ui.tab);}catch(e){}render();window.scrollTo(0,0);return;}
+  const el=ev.target.closest("[data-act]");if(!el)return;
+  const a=el.dataset.act,d=state.draft;
+  const row=el.closest(".it"),ix=row?+row.dataset.i:-1;
+  switch(a){
+    case "closeSheet":closeSheet();render();break;
+    case "settings":settingsSheet();break;
+    case "exp":{const box=el.closest(".it,.lx");const m=box.querySelector(".more");m.hidden=!m.hidden;break;}
+    case "dateM":d.date+=+el.dataset.d;save();render();break;
+    case "theme":{let t;do{t=THEMES[Math.floor(Math.random()*THEMES.length)];}while(t===d.theme&&THEMES.length>1);d.theme=t;save();render();break;}
+    case "focus":d.focus=el.dataset.v;save();render();break;
+    case "energy":d.energy=el.dataset.v;save();render();break;
+    case "preg":d.preg=!d.preg;save();render();break;
+    case "gen":generate();break;
+    case "regen":generate(el.dataset.p);break;
+    case "dm":{const it=d.items[ix];it.min=Math.max(1,Math.min(30,it.min+(+el.dataset.d)));save();render();const n=document.querySelector('.it[data-i="'+ix+'"] .more');break;}
+    case "lock":d.items[ix].lock=!d.items[ix].lock;save();render();break;
+    case "del":{const id=d.items[ix].id;d.items.splice(ix,1);d.items.forEach(i=>{if(i.pairOf===id)delete i.pairOf;});save();render();break;}
+    case "mv":{const dir=+el.dataset.d,ph=d.items[ix].ph;let j=ix+dir;while(j>=0&&j<d.items.length&&d.items[j].ph!==ph)j+=dir;if(j>=0&&j<d.items.length&&d.items[j].ph===ph){const t=d.items[ix];d.items[ix]=d.items[j];d.items[j]=t;save();render();}break;}
+    case "swap":{const it=d.items[ix];ui.swapIx=ix;const cs=candidates(it.ph,it.id);cs.sort((a,b)=>score(b,d,makeCtx())-score(a,d,makeCtx()));pickSheet("Austauschen gegen",cs,"doswap",it.ph);break;}
+    case "doswap":{const e=byId(el.dataset.id),old=d.items[ui.swapIx];if(old){d.items.forEach(i=>{if(i.pairOf===old.id)delete i.pairOf;});d.items[ui.swapIx]={id:e.id,ph:old.ph,min:e.min,lock:false};}closeSheet();save();render();break;}
+    case "addp":{const cs=candidates(el.dataset.p,"").sort((a,b)=>a.name.localeCompare(b.name,"de"));pickSheet("Übung hinzufügen · "+PHN[el.dataset.p],cs,"doadd",el.dataset.p);break;}
+    case "doadd":{const e=byId(el.dataset.id),ph=el.dataset.p;let pos=d.items.map(i=>i.ph).lastIndexOf(ph);if(pos<0){const order=PHS.map(p=>p.c);pos=-1;d.items.forEach((i,k)=>{if(order.indexOf(i.ph)<order.indexOf(ph))pos=k;});}d.items.splice(pos+1,0,{id:e.id,ph:ph,min:e.min,lock:false});closeSheet();save();render();break;}
+    case "run":unlockAudio();saveDraft();startRun(d.items.slice(),d.savedId);break;
+    case "saveplan":{const l=saveDraft();render();openSheet('<h3>Gespeichert</h3><p class="note">Die Stunde vom '+lab(l.date)+' findest du unter „Stunden“.</p><div class="btns"><button class="btn" data-act="closeSheet">OK</button></div>');break;}
+    case "copy":{const t=asText(d);const done=()=>openSheet('<h3>Kopiert</h3><p class="note">Der Ablauf liegt in der Zwischenablage und lässt sich in Notizen oder Nachrichten einfügen.</p><div class="btns"><button class="btn" data-act="closeSheet">OK</button></div>');const fb=()=>openSheet('<h3>Als Text</h3><textarea id="cp" rows="12" readonly>'+esc(t)+'</textarea><div class="btns"><button class="btn" data-act="closeSheet">Schließen</button></div>');try{navigator.clipboard.writeText(t).then(done,fb);}catch(e){fb();}break;}
+    case "fph":ui.ph=el.dataset.v;render();break;
+    case "favOnly":ui.favOnly=!ui.favOnly;render();break;
+    case "pregOnly":ui.preg=!ui.preg;render();break;
+    case "fav":{const id=el.closest(".lx").dataset.id;if(state.fav[id])delete state.fav[id];else state.fav[id]=1;save();render();break;}
+    case "block":{const id=el.closest(".lx").dataset.id;if(state.block[id])delete state.block[id];else state.block[id]=1;save();render();break;}
+    case "addlib":{const e=byId(el.closest(".lx").dataset.id),ph=e.ph.indexOf("H")>=0?"H":e.ph[0];if(!d.items.some(i=>i.id===e.id)){let pos=d.items.map(i=>i.ph).lastIndexOf(ph);if(pos<0){const order=PHS.map(p=>p.c);pos=-1;d.items.forEach((i,k)=>{if(order.indexOf(i.ph)<order.indexOf(ph))pos=k;});}d.items.splice(pos+1,0,{id:e.id,ph:ph,min:e.min,lock:false});save();}ui.tab="plan";render();window.scrollTo(0,0);break;}
+    case "newex":newExSheet();break;
+    case "nephase":el.setAttribute("aria-pressed",el.getAttribute("aria-pressed")==="true"?"false":"true");break;
+    case "nesave":{
+      const name=document.getElementById("ne-name").value.trim();
+      const phs=[...document.querySelectorAll("#ne-ph .chip")].filter(b=>b.getAttribute("aria-pressed")==="true").map(b=>b.dataset.v).join("")||"H";
+      if(!name){document.getElementById("ne-name").focus();break;}
+      const e={id:"c"+Date.now(),name:name,ph:phs.split(""),pos:document.getElementById("ne-pos").value,zone:[document.getElementById("ne-zone").value],int:1,min:Math.max(1,Math.min(20,+document.getElementById("ne-min").value||3)),sides:false,props:[],preg:document.getElementById("ne-preg").value,how:document.getElementById("ne-how").value.trim(),tip:"",pn:"",ctr:null};
+      state.custom.push(e);save();closeSheet();render();break;}
+    case "delcustom":{const id=el.closest(".lx").dataset.id;state.custom=state.custom.filter(c=>c.id!==id);delete state.fav[id];save();render();break;}
+    case "lopen":{const id=el.closest(".ls").dataset.id;ui.open=ui.open===id?null:id;render();break;}
+    case "lload":{const l=state.lessons.filter(x=>x.id===el.closest(".ls").dataset.id)[0];lessonToDraft(l);ui.tab="plan";render();window.scrollTo(0,0);break;}
+    case "lrun":{const l=state.lessons.filter(x=>x.id===el.closest(".ls").dataset.id)[0];lessonToDraft(l);startRun(state.draft.items.slice(),l.id);break;}
+    case "lfb":feedbackSheet(el.closest(".ls").dataset.id);break;
+    case "ldel":{const id=el.closest(".ls").dataset.id;openSheet('<h3>Stunde löschen?</h3><p class="note">Die Stunde und ihre Angaben gehen aus der Auswertung verloren.</p><div class="btns"><button class="btn ghost" data-act="closeSheet">Abbrechen</button><button class="btn" data-act="ldelnow" data-id="'+id+'">Löschen</button></div>');break;}
+    case "ldelnow":state.lessons=state.lessons.filter(x=>x.id!==el.dataset.id);if(state.draft.savedId===el.dataset.id)state.draft.savedId=null;save();closeSheet();render();break;
+    case "rg":ui.rg=el.dataset.v;render();break;
+    case "m":ui.m=el.dataset.v;render();break;
+    case "sv":ui.sv=el.dataset.v;render();break;
+    case "setp":state.set[el.dataset.v]=!state.set[el.dataset.v];save();settingsSheet();break;
+    case "setlen":state.set.len=+el.dataset.v;if(!state.draft.items.length)state.draft.len=state.set.len;save();settingsSheet();break;
+    case "setavoid":state.set.avoid=+el.dataset.v;save();settingsSheet();break;
+    case "ics":download("soft-yoga-planen.ics","text/calendar",icsFile());break;
+    case "export":download("soft-yoga-sicherung.json","application/json",JSON.stringify(state));break;
+    case "import":document.getElementById("imp").click();break;
+    case "pax":{const i=document.getElementById("fb-pax");i.value=Math.max(0,Math.min(40,(+i.value||0)+(+el.dataset.d)));break;}
+    case "mood":document.querySelectorAll("#fb-mood .chip").forEach(b=>b.setAttribute("aria-pressed",String(b===el)));document.getElementById("fb-ml").textContent=MOODS[+el.dataset.v-1];break;
+    case "like":el.setAttribute("aria-pressed",el.getAttribute("aria-pressed")==="true"?"false":"true");break;
+    case "fbsave":{
+      const id=document.querySelector("[data-lid]").dataset.lid,l=state.lessons.filter(x=>x.id===id)[0];if(!l)break;
+      const pv=document.getElementById("fb-pax").value;
+      l.pax=pv===""?null:+pv;
+      const mb=[...document.querySelectorAll("#fb-mood .chip")].filter(b=>b.getAttribute("aria-pressed")==="true")[0];
+      l.mood=mb?+mb.dataset.v:null;
+      l.liked=[...document.querySelectorAll("#fb-likes .lk-b")].filter(b=>b.getAttribute("aria-pressed")==="true").map(b=>b.dataset.id);
+      l.note=document.getElementById("fb-note").value.trim();
+      l.date=fromIso(document.getElementById("fb-date").value);
+      l.status="gehalten";save();closeSheet();render();break;}
+    case "rpause":run.paused=!run.paused;run.last=Date.now();drawRun();break;
+    case "rnext":run.i++;run.rem=run.items[run.i].min*60000;run.chimed=false;run.last=Date.now();drawRun();break;
+    case "rprev":run.i--;run.rem=run.items[run.i].min*60000;run.chimed=false;run.last=Date.now();drawRun();break;
+    case "rend":finishRun();break;
+    case "rquit":openSheet('<h3>Stunde beenden?</h3><p class="note">Du kannst die Stunde danach als gehalten eintragen oder sie einfach schließen.</p><div class="btns"><button class="btn ghost" data-act="closeSheet">Weiter üben</button><button class="btn ghost" data-act="rclose">Schließen</button><button class="btn" data-act="rend2">Eintragen</button></div>');break;
+    case "rclose":closeSheet();closeRun();render();break;
+    case "rend2":closeSheet();finishRun();break;
+  }
+});
+document.addEventListener("input",ev=>{
+  const t=ev.target;
+  if(t.id==="pnote"){state.draft.note=t.value;save();}
+  if(t.id==="q"){ui.q=t.value;document.getElementById("liblist").innerHTML=libList();}
+});
+document.addEventListener("change",ev=>{
+  const t=ev.target;if(!t.dataset||!t.dataset.sel)return;
+  if(t.dataset.sel==="len"){state.draft.len=+t.value;save();render();}
+  if(t.dataset.sel==="pos"){ui.pos=t.value;render();}
+  if(t.dataset.sel==="zone"){ui.zone=t.value;render();}
+});
+document.getElementById("imp").addEventListener("change",ev=>{
+  const f=ev.target.files&&ev.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{try{const o=JSON.parse(r.result);if(!o||!o.set||!Array.isArray(o.lessons))throw 0;state=o;if(!state.draft)state.draft=newDraft(60);save();closeSheet();render();openSheet('<h3>Sicherung eingespielt</h3><p class="note">Stunden, Einstellungen und Favoriten sind wieder da.</p><div class="btns"><button class="btn" data-act="closeSheet">OK</button></div>');}catch(e){openSheet('<h3>Datei nicht lesbar</h3><p class="note">Das ist keine Sicherung dieser App.</p><div class="btns"><button class="btn" data-act="closeSheet">OK</button></div>');}ev.target.value="";};
+  r.readAsText(f);
+});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){if(run){runTick();lockScreen();}}});
+window.addEventListener("hashchange",()=>{const h=(location.hash||"").slice(1);if(["plan","lib","ls","stats"].indexOf(h)>=0){ui.tab=h;render();}});
+(()=>{const h=(location.hash||"").slice(1);if(["plan","lib","ls","stats"].indexOf(h)>=0)ui.tab=h;})();
+render();
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
+if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{});});}
+window.__yoga={generate:generate,state:()=>state,render:render,ui:ui};
+})();
+
+</script>
+</body>
+</html>
