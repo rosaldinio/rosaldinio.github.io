@@ -42,6 +42,7 @@ main{max-width:640px;margin:0 auto;padding:6px 14px 20px}
 .chips.scroll::-webkit-scrollbar{display:none}
 .chip{font:600 14px var(--body);color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:9px 14px;white-space:nowrap;cursor:pointer;min-height:40px}
 .chip[aria-pressed="true"]{background:var(--sage);border-color:var(--sage);color:#fff}
+.seg.two{grid-template-columns:1fr 1fr}.pill.priv{background:#e3e0ef;color:#555a85;margin-right:4px}
 .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
 .opts{margin-top:14px;justify-content:space-between;flex-wrap:wrap}
 .len{font-size:14px;color:var(--mut)}
@@ -251,10 +252,11 @@ function nextMonday(){let n=today();while(dow(n)!==1)n++;return n;}
 
 /* ---------- Zustand ---------- */
 function fresh(){return {v:1,ts:0,set:{gurt:true,wand:true,avoid:2,len:60},fav:{},block:{},custom:[],lessons:[],draft:newDraft(60)};}
-function newDraft(len){return {id:"d"+Date.now(),date:nextMonday(),theme:THEMES[Math.floor(Math.random()*THEMES.length)],focus:"Ganzkörper",energy:"ausgewogen",preg:false,len:len||60,items:[],note:"",savedId:null};}
-let state=null,ui={tab:"plan",q:"",ph:"",pos:"",zone:"",favOnly:false,preg:false,rg:"A",m:"pax",sv:"zone"};
+const kindOf=l=>l.kind||"kurs";
+function newDraft(len,kind){return {kind:kind||"kurs",id:"d"+Date.now(),date:nextMonday(),theme:THEMES[Math.floor(Math.random()*THEMES.length)],focus:"Ganzkörper",energy:"ausgewogen",preg:false,len:len||60,items:[],note:"",savedId:null};}
+let state=null,ui={kind:"kurs",tab:"plan",q:"",ph:"",pos:"",zone:"",favOnly:false,preg:false,rg:"A",m:"pax",sv:"zone"};
 function loadLocal(){try{const s=localStorage.getItem(LS);if(s){const o=JSON.parse(s);if(o&&o.set&&o.draft)return o;}}catch(e){}return null;}
-state=loadLocal()||fresh();
+state=loadLocal()||fresh();if(!state.draft.kind)state.draft.kind="kurs";ui.kind=state.draft.kind;
 function save(){state.ts=Date.now();try{localStorage.setItem(LS,JSON.stringify(state));}catch(e){}}
 
 /* ---------- Bibliothek ---------- */
@@ -268,7 +270,7 @@ function targets(len){const t={};let sum=0;PHS.forEach(p=>{t[p.c]=Math.max(2,Mat
 function lessonsSorted(){return state.lessons.slice().sort((a,b)=>b.date-a.date);}
 function makeCtx(){
   const rec={},likes={};
-  lessonsSorted().forEach((l,i)=>{l.items.forEach(it=>{if(!rec[it.id])rec[it.id]={idx:i,last:l.date};});(l.liked||[]).forEach(id=>likes[id]=(likes[id]||0)+1);});
+  lessonsSorted().filter(l=>kindOf(l)===state.draft.kind).forEach((l,i)=>{l.items.forEach(it=>{if(!rec[it.id])rec[it.id]={idx:i,last:l.date};});(l.liked||[]).forEach(id=>likes[id]=(likes[id]||0)+1);});
   return {rec:rec,likes:likes};
 }
 function allowed(e,d,maxInt){
@@ -422,7 +424,7 @@ const chip=(act,val,cur,text,extra)=>'<button class="chip" data-act="'+act+'" da
 function viewPlan(){
   const d=state.draft,t=total(d.items),has=d.items.length>0;
   let h='<section class="card ctl"><div class="row dates"><button class="icon" data-act="dateM" data-d="-7" aria-label="Eine Woche zurück">'+ICO.chev.replace('<svg','<svg style="transform:rotate(90deg)"')+'</button><div class="grow"><div class="eyebrow">Stunde am</div><div class="bigdate">'+fmt(d.date,{weekday:"long",day:"numeric",month:"long"})+'</div></div><button class="icon" data-act="dateM" data-d="7" aria-label="Eine Woche weiter">'+ICO.chev.replace('<svg','<svg style="transform:rotate(-90deg)"')+'</button></div>';
-  h+='<div class="theme"><span class="eyebrow">Leitgedanke</span><div class="row"><div class="grow quote">'+esc(d.theme||"–")+'</div><button class="icon" data-act="theme" aria-label="Anderer Leitgedanke">'+ICO.re+'</button></div></div>';
+  h+='<div class="eyebrow mt">Art der Stunde</div><div class="seg two">'+chip("kind","kurs",d.kind,"Kurs (Montag)")+chip("kind","privat",d.kind,"Privat / Test")+'</div>'+(d.kind==="privat"?'<p class="note">Private Stunden zählen nicht in die Auswertung des Kurses.</p>':'')+'<div class="theme"><span class="eyebrow">Leitgedanke</span><div class="row"><div class="grow quote">'+esc(d.theme||"–")+'</div><button class="icon" data-act="theme" aria-label="Anderer Leitgedanke">'+ICO.re+'</button></div></div>';
   h+='<div class="eyebrow mt">Schwerpunkt</div><div class="chips scroll">'+Object.keys(FOCUS).map(f=>chip("focus",f,d.focus,f)).join("")+'</div>';
   h+='<div class="eyebrow mt">Stimmung der Stunde</div><div class="seg">'+ENERGY.map(e=>chip("energy",e[0],d.energy,e[1])).join("")+'</div>';
   h+='<div class="row opts"><button class="chip" data-act="preg" aria-pressed="'+d.preg+'">Schwangere dabei</button><label class="len">Länge <select data-sel="len">'+[45,60,75,90].map(n=>'<option'+(n===d.len?' selected':'')+'>'+n+'</option>').join("")+'</select> min</label></div>';
@@ -475,14 +477,14 @@ function viewLessons(){
   if(!L.length)return '<section class="card empty"><div class="lotus">'+lotus()+'</div><p>Hier erscheinen deine geplanten und gehaltenen Stunden. Speichere im Planer eine Stunde oder führe sie direkt durch.</p></section>';
   return '<section class="card">'+L.map(l=>{
     const open=ui.open===l.id;
-    return '<div class="ls" data-id="'+l.id+'"><button class="ls-h" data-act="lopen"><span class="dt">'+lab(l.date)+'</span><span class="grow"><b>'+esc(l.theme||"Stunde")+'</b><span class="mt">'+total(l.items)+' min · '+l.items.length+' Übungen · '+esc(l.focus)+(l.preg?' · Schwangere':'')+'</span></span><span class="pill '+(l.status==="gehalten"?"ok":"")+'">'+(l.status==="gehalten"?"gehalten":"geplant")+'</span></button>'+
+    return '<div class="ls" data-id="'+l.id+'"><button class="ls-h" data-act="lopen"><span class="dt">'+lab(l.date)+'</span><span class="grow"><b>'+esc(l.theme||"Stunde")+'</b><span class="mt">'+total(l.items)+' min · '+l.items.length+' Übungen · '+esc(l.focus)+(l.preg?' · Schwangere':'')+'</span></span>'+(kindOf(l)==="privat"?'<span class="pill priv">privat</span>':'')+'<span class="pill '+(l.status==="gehalten"?"ok":"")+'">'+(l.status==="gehalten"?"gehalten":"geplant")+'</span></button>'+
       (open?'<div class="ls-b">'+(l.status==="gehalten"?'<p class="mt2">'+(l.pax!=null?l.pax+' Teilnehmende':'Teilnehmerzahl offen')+(l.mood?' · Stimmung: '+MOODS[l.mood-1]:'')+'</p>':'')+(l.note?'<p class="mt2">'+esc(l.note)+'</p>':'')+PHS.map(p=>{const its=l.items.filter(i=>i.ph===p.c);return its.length?'<div class="lph"><b>'+p.n+'</b>'+its.map(i=>'<div>'+esc(byId(i.id).name)+' <span class="mut">'+i.min+'′</span>'+((l.liked||[]).indexOf(i.id)>=0?' <span class="hrt">'+ICO.heart+'</span>':'')+'</div>').join("")+'</div>':'';}).join("")+
-        '<div class="tools"><button data-act="lload">In den Planer laden</button>'+(l.status!=="gehalten"?'<button data-act="lrun">Durchführen</button>':'')+'<button data-act="lfb">'+(l.status==="gehalten"?'Feedback ändern':'Als gehalten eintragen')+'</button><button data-act="ldel" class="danger">'+ICO.del+'Löschen</button></div></div>':'')+'</div>';
+        '<div class="tools"><button data-act="lkind">'+(kindOf(l)==="kurs"?'Als privat markieren':'Als Kurs markieren')+'</button><button data-act="lload">In den Planer laden</button>'+(l.status!=="gehalten"?'<button data-act="lrun">Durchführen</button>':'')+'<button data-act="lfb">'+(l.status==="gehalten"?'Feedback ändern':'Als gehalten eintragen')+'</button><button data-act="ldel" class="danger">'+ICO.del+'Löschen</button></div></div>':'')+'</div>';
   }).join("")+'</section>';
 }
 
 /* ---------- Auswertung ---------- */
-function held(){const t=today(),days={M:30,Q:90,Y:365}[ui.rg];return state.lessons.filter(l=>l.status==="gehalten"&&(!days||l.date>t-days)).sort((a,b)=>a.date-b.date);}
+function held(){const t=today(),days={M:30,Q:90,Y:365}[ui.rg];return state.lessons.filter(l=>l.status==="gehalten"&&kindOf(l)===ui.kind&&(!days||l.date>t-days)).sort((a,b)=>a.date-b.date);}
 function lineChart(pts,min0,max0){
   const W=320,H=170,L=34,R=14,T=22,B=26,c=pts.length;
   const ys=pts.map(p=>p.v);let mn=min0!=null?min0:Math.min.apply(null,ys),mx=max0!=null?max0:Math.max.apply(null,ys);
@@ -504,16 +506,18 @@ function hbars(items,unit){
   return '<div class="hb">'+items.map(i=>'<div class="hb-r"><span class="hb-l">'+esc(i.label)+'</span><span class="hb-t"><i style="width:'+Math.max(3,i.v/mx*100)+'%"></i></span><span class="hb-v">'+fnum(i.v)+(unit||'')+'</span></div>').join("")+'</div>';
 }
 function viewStats(){
-  const all=state.lessons.filter(l=>l.status==="gehalten");
-  const H=held();
-  let h='<div class="chips" style="margin-bottom:12px">'+[["M","Monat"],["Q","3 Monate"],["Y","Jahr"],["A","Alles"]].map(x=>chip("rg",x[0],ui.rg,x[1])).join("")+'</div>';
+  const all=state.lessons.filter(l=>l.status==="gehalten"&&kindOf(l)===ui.kind);
+  const H=held(),priv=ui.kind==="privat";
+  if(priv)ui.m="mood";
+  let h='<div class="seg two" style="margin-bottom:10px">'+chip("skind","kurs",ui.kind,"Kurs (Montag)")+chip("skind","privat",ui.kind,"Privat / Test")+'</div><div class="chips" style="margin:0 0 12px">'+[["M","Monat"],["Q","3 Monate"],["Y","Jahr"],["A","Alles"]].map(x=>chip("rg",x[0],ui.rg,x[1])).join("")+'</div>';
   const withPax=H.filter(l=>l.pax!=null),withMood=H.filter(l=>l.mood);
   const avg=(a,f)=>a.length?a.reduce((s,x)=>s+f(x),0)/a.length:null;
   const ap=avg(withPax,l=>l.pax),am=avg(withMood,l=>l.mood);
-  h+='<div class="stats"><div class="stat"><b>'+H.length+'</b><span>Stunden</span></div><div class="stat"><b>'+(ap==null?'–':fnum(ap))+'</b><span>Ø Teilnehmende</span></div><div class="stat"><b>'+(am==null?'–':fnum(am))+'</b><span>Ø Stimmung (1–5)</span></div></div>';
-  if(!all.length)return h+'<section class="card empty"><div class="lotus">'+lotus()+'</div><p>Die Auswertung füllt sich, sobald du Stunden als „gehalten“ einträgst. Nach dem Durchführen fragt die App kurz nach Teilnehmenden und Stimmung.</p></section>';
+  const hrs=H.reduce((a,l)=>a+total(l.items),0)/60;
+  h+='<div class="stats"><div class="stat"><b>'+H.length+'</b><span>Stunden</span></div>'+(priv?'<div class="stat"><b>'+fnum(hrs)+'</b><span>Stunden Praxis</span></div>':'<div class="stat"><b>'+(ap==null?'–':fnum(ap))+'</b><span>Ø Teilnehmende</span></div>')+'<div class="stat"><b>'+(am==null?'–':fnum(am))+'</b><span>'+(priv?'Ø Wohlbefinden (1–5)':'Ø Stimmung (1–5)')+'</span></div></div>';
+  if(!all.length)return h+'<section class="card empty"><div class="lotus">'+lotus()+'</div><p>'+(priv?'Hier erscheinen deine privaten Stunden und Tests, getrennt vom Kurs. ':'')+'Die Auswertung füllt sich, sobald du Stunden als „gehalten“ einträgst. Nach dem Durchführen fragt die App kurz nach Teilnehmenden und Stimmung.</p></section>';
   if(!H.length)return h+'<section class="card empty"><p>Im gewählten Zeitraum gibt es keine gehaltene Stunde. Wähle einen längeren Zeitraum.</p></section>';
-  h+='<section class="card"><div class="eyebrow">Entwicklung</div><div class="chips" style="margin:8px 0 6px">'+chip("m","pax",ui.m,"Teilnehmende")+chip("m","mood",ui.m,"Stimmung")+'</div>';
+  h+='<section class="card"><div class="eyebrow">Entwicklung</div><div class="chips" style="margin:8px 0 6px">'+(priv?'':chip("m","pax",ui.m,"Teilnehmende"))+chip("m","mood",ui.m,priv?"Wohlbefinden":"Stimmung")+'</div>';
   const pts=(ui.m==="pax"?withPax:withMood).map(l=>({n:l.date,v:ui.m==="pax"?l.pax:l.mood}));
   h+=pts.length?lineChart(pts,ui.m==="mood"?1:0,ui.m==="mood"?5:null):'<p class="note">Für diese Ansicht fehlen noch Angaben.</p>';
   if(pts.length>1){const df=pts[pts.length-1].v-pts[0].v;h+='<p class="note"><b class="'+(df>=0?'up':'')+'">'+(df>=0?'+':'')+fnum(df)+'</b> seit der ersten Stunde im Zeitraum ('+fnum(pts[0].v)+' → '+fnum(pts[pts.length-1].v)+')</p>';}
@@ -568,8 +572,8 @@ function newExSheet(){
 function feedbackSheet(id){
   const l=state.lessons.filter(x=>x.id===id)[0];if(!l)return;
   openSheet('<h3>Wie war die Stunde?</h3><div class="form" data-lid="'+id+'"><label>Datum<input type="date" id="fb-date" value="'+iso(l.status==="gehalten"?l.date:Math.min(l.date,today())>0&&l.date<=today()?l.date:today())+'"></label>'+
-    '<div class="eyebrow">Teilnehmende</div><div class="stepper"><button data-act="pax" data-d="-1" aria-label="Weniger">−</button><input type="number" id="fb-pax" inputmode="numeric" min="0" max="40" value="'+(l.pax!=null?l.pax:'')+'" placeholder="–"><button data-act="pax" data-d="1" aria-label="Mehr">+</button></div>'+
-    '<div class="eyebrow mt">Stimmung der Gruppe</div><div class="moods" id="fb-mood">'+[1,2,3,4,5].map(n=>'<button class="chip" data-act="mood" data-v="'+n+'" aria-pressed="'+(l.mood===n)+'">'+n+'</button>').join("")+'</div><p class="note" id="fb-ml">'+(l.mood?MOODS[l.mood-1]:'1 = unruhig, 5 = tief entspannt')+'</p>'+
+    (kindOf(l)==="privat"?'':'<div class="eyebrow">Teilnehmende</div><div class="stepper"><button data-act="pax" data-d="-1" aria-label="Weniger">−</button><input type="number" id="fb-pax" inputmode="numeric" min="0" max="40" value="'+(l.pax!=null?l.pax:'')+'" placeholder="–"><button data-act="pax" data-d="1" aria-label="Mehr">+</button></div>')+
+    '<div class="eyebrow mt">'+(kindOf(l)==="privat"?'Wie fühlst du dich danach?':'Stimmung der Gruppe')+'</div><div class="moods" id="fb-mood">'+[1,2,3,4,5].map(n=>'<button class="chip" data-act="mood" data-v="'+n+'" aria-pressed="'+(l.mood===n)+'">'+n+'</button>').join("")+'</div><p class="note" id="fb-ml">'+(l.mood?MOODS[l.mood-1]:'1 = unruhig, 5 = tief entspannt')+'</p>'+
     '<div class="eyebrow mt">Was kam besonders gut an?</div><div class="likes" id="fb-likes">'+l.items.map(i=>'<button class="lk-b" data-act="like" data-id="'+esc(i.id)+'" aria-pressed="'+((l.liked||[]).indexOf(i.id)>=0)+'">'+ICO.heart+esc(byId(i.id).name)+'</button>').join("")+'</div>'+
     '<label class="mt">Notiz<textarea id="fb-note" rows="3" placeholder="Was möchtest du dir merken?">'+esc(l.note||"")+'</textarea></label></div><div class="btns"><button class="btn ghost" data-act="closeSheet">Später</button><button class="btn" data-act="fbsave">Speichern</button></div>');
 }
@@ -578,12 +582,12 @@ function feedbackSheet(id){
 function saveDraft(status){
   const d=state.draft;let l=state.lessons.filter(x=>x.id===d.savedId)[0];
   if(!l){l={id:"l"+Date.now(),status:"geplant"};state.lessons.push(l);d.savedId=l.id;}
-  Object.assign(l,{date:d.date,theme:d.theme,focus:d.focus,energy:d.energy,preg:d.preg,len:d.len,items:JSON.parse(JSON.stringify(d.items)),note:d.note});
+  Object.assign(l,{kind:d.kind||"kurs",date:d.date,theme:d.theme,focus:d.focus,energy:d.energy,preg:d.preg,len:d.len,items:JSON.parse(JSON.stringify(d.items)),note:d.note});
   if(status)l.status=status;
   save();return l;
 }
 function lessonToDraft(l){
-  state.draft={id:"d"+Date.now(),date:l.date<today()?nextMonday():l.date,theme:l.theme,focus:l.focus,energy:l.energy,preg:l.preg,len:l.len||60,items:JSON.parse(JSON.stringify(l.items)),note:l.note||"",savedId:l.status==="gehalten"?null:l.id};
+  state.draft={kind:kindOf(l),id:"d"+Date.now(),date:l.date<today()?nextMonday():l.date,theme:l.theme,focus:l.focus,energy:l.energy,preg:l.preg,len:l.len||60,items:JSON.parse(JSON.stringify(l.items)),note:l.note||"",savedId:l.status==="gehalten"?null:l.id};
   save();
 }
 
@@ -658,6 +662,9 @@ document.addEventListener("click",ev=>{
     case "exp":{const box=el.closest(".it,.lx");const m=box.querySelector(".more");m.hidden=!m.hidden;break;}
     case "dateM":d.date+=+el.dataset.d;save();render();break;
     case "theme":{let t;do{t=THEMES[Math.floor(Math.random()*THEMES.length)];}while(t===d.theme&&THEMES.length>1);d.theme=t;save();render();break;}
+    case "kind":d.kind=el.dataset.v;ui.kind=d.kind;d.savedId=null;save();render();break;
+    case "lkind":{const l=state.lessons.filter(x=>x.id===el.closest(".ls").dataset.id)[0];l.kind=kindOf(l)==="kurs"?"privat":"kurs";save();render();break;}
+    case "skind":ui.kind=el.dataset.v;render();break;
     case "focus":d.focus=el.dataset.v;save();render();break;
     case "energy":d.energy=el.dataset.v;save();render();break;
     case "preg":d.preg=!d.preg;save();render();break;
@@ -709,8 +716,8 @@ document.addEventListener("click",ev=>{
     case "like":el.setAttribute("aria-pressed",el.getAttribute("aria-pressed")==="true"?"false":"true");break;
     case "fbsave":{
       const id=document.querySelector("[data-lid]").dataset.lid,l=state.lessons.filter(x=>x.id===id)[0];if(!l)break;
-      const pv=document.getElementById("fb-pax").value;
-      l.pax=pv===""?null:+pv;
+      const px=document.getElementById("fb-pax");
+      l.pax=!px||px.value===""?null:+px.value;
       const mb=[...document.querySelectorAll("#fb-mood .chip")].filter(b=>b.getAttribute("aria-pressed")==="true")[0];
       l.mood=mb?+mb.dataset.v:null;
       l.liked=[...document.querySelectorAll("#fb-likes .lk-b")].filter(b=>b.getAttribute("aria-pressed")==="true").map(b=>b.dataset.id);
