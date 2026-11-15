@@ -156,7 +156,7 @@ let S=(function(){try{const o=JSON.parse(localStorage.getItem(LS));if(o&&Array.i
 function save(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
 let ui={tab:"list",f:"aktiv",q:"",ed:null,isNew:false,other:false,cm:todayIso().slice(0,7),cd:todayIso()};
 const get=id=>S.items.filter(i=>i.id===id)[0];
-function blank(von){return {id:"r"+Date.now()+Math.floor(Math.random()*999),name:"",tel:"",ort:"",art:"",quelle:"",von:von||"",bis:von||"",bg:"",note:"",paket:"",cl:{res:false,bg:false},cancel:false,created:todayIso()};}
+function blank(von){return {id:"r"+Date.now()+Math.floor(Math.random()*999),name:"",tel:"",ort:"",art:"",quelle:"",von:von||"",bis:von||"",bg:"",note:"",paket:"",abst:"",abstZ:"18:00",cl:{res:false,bg:false},cancel:false,created:todayIso()};}
 function status(it){
   if(it.cancel)return "abgesagt";
   const e=it.bis||it.von;
@@ -193,6 +193,16 @@ function ics(it){
   const e=addDays(it.bis||it.von,1);
   return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Fotobox Anfragen//DE","BEGIN:VEVENT","UID:"+it.id+"@fotobox","DTSTAMP:"+new Date().toISOString().replace(/[-:]/g,"").slice(0,15)+"Z","DTSTART;VALUE=DATE:"+it.von.replace(/-/g,""),"DTEND;VALUE=DATE:"+e.replace(/-/g,""),"SUMMARY:Fotobox: "+(it.name||"Anfrage")+(it.art?" ("+it.art+")":""),"LOCATION:"+(it.ort||""),"DESCRIPTION:"+[it.tel,it.paket?PK[it.paket]:"",it.bg?"Hintergrund: "+it.bg:""].filter(Boolean).join(" · "),"END:VEVENT","END:VCALENDAR"].join("\r\n");
 }
+function icsAbst(it){
+  const d=it.abst.replace(/-/g,""),z=(it.abstZ||"18:00").replace(":","")+"00",h=+(it.abstZ||"18:00").slice(0,2),m=(it.abstZ||"18:00").slice(3,5);
+  const e=pad((h+1)%24)+m+"00";
+  return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Fotobox Anfragen//DE","BEGIN:VEVENT","UID:"+it.id+"-abstimmung@fotobox","DTSTAMP:"+new Date().toISOString().replace(/[-:]/g,"").slice(0,15)+"Z","DTSTART:"+d+"T"+z,"DTEND:"+d+"T"+e,"SUMMARY:Fotobox-Abstimmung: "+(it.name||"Kunde")+(it.art?" ("+it.art+")":""),"DESCRIPTION:"+["Veranstaltung am "+range(it)+(it.ort?" in "+it.ort:""),it.tel].filter(Boolean).join(" · "),"BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:Abstimmung Fotobox: "+(it.name||"Kunde"),"TRIGGER:PT0M","END:VALARM","BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:In 1 Stunde: Abstimmung Fotobox "+(it.name||""),"TRIGGER:-PT1H","END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n");
+}
+function abstRange(it){
+  if(!it.von||it.von<todayIso())return null;
+  const lo=addDays(it.von,-42),t=todayIso();
+  return {min:lo>t?lo:t,max:it.von};
+}
 /* ---- Liste ---- */
 function filtered(){
   const q=ui.q.trim().toLowerCase(),t=todayIso();
@@ -208,7 +218,7 @@ function filtered(){
 function card(it){
   const st=status(it),n=steps(it),ov=overlaps(it).length;
   const hasTel=!!intl(it.tel);
-  return '<article class="card rq" data-id="'+it.id+'" data-act="open" style="--st:'+STC[st]+'"><div class="rq-h"><div style="flex:1;min-width:0"><div class="rq-n">'+esc(it.name||"Ohne Namen")+'</div><div class="rq-m">'+esc(range(it))+(it.ort?' · '+esc(it.ort):'')+'</div><div style="margin-top:8px"><span class="pill st">'+STN[st]+'</span>'+(it.art?'<span class="pill">'+esc(it.art)+'</span>':'')+(ov?'<span class="pill warn">Überschneidung</span>':'')+'</div></div>'+
+  return '<article class="card rq" data-id="'+it.id+'" data-act="open" style="--st:'+STC[st]+'"><div class="rq-h"><div style="flex:1;min-width:0"><div class="rq-n">'+esc(it.name||"Ohne Namen")+'</div><div class="rq-m">'+esc(range(it))+(it.ort?' · '+esc(it.ort):'')+'</div>'+(it.abst&&!it.cancel&&it.abst>=todayIso()?'<div class="rq-m" style="color:#c4b5fd">Abstimmung: '+esc(fmtD(it.abst,{weekday:"short",day:"2-digit",month:"2-digit"}))+(it.abstZ?', '+esc(it.abstZ)+' Uhr':'')+'</div>':'')+'<div style="margin-top:8px"><span class="pill st">'+STN[st]+'</span>'+(it.art?'<span class="pill">'+esc(it.art)+'</span>':'')+(ov?'<span class="pill warn">Überschneidung</span>':'')+'</div></div>'+
    '<div class="rq-a"><button class="ic sm" data-act="qcall" data-id="'+it.id+'" aria-label="Anrufen"'+(it.tel?'':' disabled style="opacity:.3"')+'>'+I.call+'</button><button class="ic sm" data-act="qwa" data-id="'+it.id+'" aria-label="WhatsApp"'+(hasTel?' style="color:#4ade80"':' disabled style="opacity:.3"')+'>'+I.wa+'</button></div></div>'+
    '<div class="prog">'+[0,1,2,3].map(i=>'<i class="'+(i<n?'on':'')+'"></i>').join("")+'</div><div class="prog-l"><span>'+n+' von 4 abgestimmt</span><span>'+(it.paket?PK[it.paket]:'Paket offen')+'</span></div></article>';
 }
@@ -265,6 +275,17 @@ function edHtml(it){
    '<button class="ck'+(it.cl.res?' on':'')+'" data-act="tick" data-k="res"><span class="bx">'+I.chk+'</span><span>Reserviert'+(it.cl.res?'':'<small>Termin verbindlich geblockt</small>')+'</span></button>'+
    '<button class="ck'+(it.cl.bg?' on':'')+'" data-act="tick" data-k="bg"><span class="bx">'+I.chk+'</span><span>Hintergrund abgestimmt'+(it.cl.bg&&it.bg?'<small>'+esc(it.bg)+'</small>':'')+'</span></button>'+
    '<div class="pkw"><div class="ck'+(it.paket?' on':'')+'"><span class="bx">'+I.chk+'</span><span>Paket ausgewählt'+(it.paket?'<small>'+PK[it.paket]+'</small>':'<small>Bitte wählen</small>')+'</span></div><div class="seg">'+Object.keys(PK).map(k=>'<button class="chip" data-act="pk" data-v="'+k+'" aria-pressed="'+(it.paket===k)+'">'+PK[k]+'</button>').join("")+'</div></div></div>';
+  const ar=abstRange(it);
+  h+='<div class="card" style="--st:var(--b)"><p class="sec">Abstimmtermin</p>';
+  if(!ar)h+='<p class="hint" style="margin:0">'+(it.von?'Die Veranstaltung liegt in der Vergangenheit.':'Trage zuerst das Datum der Veranstaltung ein. Der Abstimmtermin kann bis zu 6 Wochen davor liegen.')+'</p>';
+  else{
+    const out=it.abst&&(it.abst<ar.min||it.abst>ar.max);
+    h+='<div class="chips wrap" style="margin-top:0">'+[[4,"4 Wochen vorher"],[2,"2 Wochen vorher"],[1,"1 Woche vorher"]].map(x=>'<button class="chip" data-act="abstq" data-w="'+x[0]+'" aria-pressed="'+(it.abst&&it.abst===(addDays(it.von,-7*x[0])<ar.min?ar.min:addDays(it.von,-7*x[0])))+'">'+x[1]+'</button>').join("")+'</div>'+
+     '<div class="two"><label class="f">Datum<input data-f="abst" type="date" value="'+esc(it.abst)+'" min="'+ar.min+'" max="'+ar.max+'"></label><label class="f">Uhrzeit<input data-f="abstZ" type="time" value="'+esc(it.abstZ||"18:00")+'"></label></div>'+
+     (out?'<p class="hint" style="color:#ffb454">Der Termin liegt außerhalb der 6 Wochen vor der Veranstaltung.</p>':'<p class="hint">Bis zu 6 Wochen vor dem Veranstaltungstermin möglich. Im Kalender kommt eine Erinnerung zur Uhrzeit und eine Stunde vorher.</p>')+
+     '<button class="btn ghost" data-act="icsabst" style="margin-top:12px"'+(it.abst?'':' disabled')+'>Abstimmtermin in den Kalender</button>';
+  }
+  h+='</div>';
   h+='<div class="card" style="--st:var(--ang)"><label class="f" style="margin-top:0">Hintergrund (optional)<input data-f="bg" list="bgl" value="'+esc(it.bg)+'" placeholder="z. B. Gold-Glitzer, Blumenwand …"></label><datalist id="bgl">'+bgs.map(b=>'<option value="'+esc(b)+'">').join("")+'</datalist><label class="f">Notiz<textarea data-f="note" rows="3" placeholder="Wünsche, Besonderheiten, Preis …">'+esc(it.note)+'</textarea></label></div>';
   h+='<div class="rows"><button class="btn ghost" data-act="ics"'+(it.von?'':' disabled')+'>Termin in den Kalender</button><button class="btn ghost" data-act="cancel">'+(it.cancel?'Anfrage wieder aktivieren':'Anfrage absagen')+'</button><button class="btn ghost danger" data-act="del">Löschen</button></div>';
   return h;
@@ -304,6 +325,8 @@ document.addEventListener("click",ev=>{
     case "call":openUrl("tel:"+it.tel.replace(/\s/g,""));break;
     case "wa":openUrl("https://wa.me/"+intl(it.tel));break;
     case "vcf":shareFile((it.name||"kontakt").replace(/[^\wäöüÄÖÜß-]+/g,"_")+".vcf","text/vcard",vcard(it),it.name).then(()=>toast("Kontakt bereit: in „Kontakte“ speichern"));break;
+    case "abstq":{const ar=abstRange(it);if(!ar)break;const d=addDays(it.von,-7*(+el.dataset.w));it.abst=d<ar.min?ar.min:d;save();redrawEd();break;}
+    case "icsabst":shareFile("fotobox-abstimmung-"+it.abst+".ics","text/calendar",icsAbst(it),"Fotobox-Abstimmung");break;
     case "ics":shareFile("fotobox-"+it.von+".ics","text/calendar",ics(it),"Fotobox");break;
     case "cancel":it.cancel=!it.cancel;save();redrawEd();break;
     case "del":openSheet('<h3>Anfrage löschen?</h3><p class="hint">„'+esc(it.name||"Ohne Namen")+'“ wird endgültig gelöscht. Alternativ kannst du sie absagen, dann bleibt sie unter „Abgesagt“ erhalten.</p><div class="btns"><button class="btn ghost" data-act="closeSheet">Abbrechen</button><button class="btn" data-act="delnow">Löschen</button></div>');break;
@@ -319,7 +342,7 @@ document.addEventListener("input",ev=>{
   if(t.id==="q"){ui.q=t.value;document.getElementById("lst").innerHTML=listBody();return;}
   const f=t.dataset&&t.dataset.f;if(!f||!ui.ed)return;
   const it=get(ui.ed);
-  if(f==="von"||f==="bis")return;
+  if(f==="von"||f==="bis"||f==="abst"||f==="abstZ")return;
   it[f]=t.value;save();
   if(f==="tel"){const ok=!!intl(it.tel),w=document.querySelector(".act.wa"),c=document.querySelector(".act.call"),v=document.querySelector(".act.vc");if(w)w.disabled=!ok;if(c)c.disabled=!it.tel;if(v)v.disabled=!(it.name&&it.tel);}
   if(f==="name"){const v=document.querySelector(".act.vc");if(v)v.disabled=!(it.name&&it.tel);}
@@ -332,6 +355,7 @@ document.addEventListener("change",ev=>{
     if(f==="von"&&t.value&&(!it.bis||it.bis<t.value))it.bis=t.value;
     if(f==="bis"&&t.value&&it.von&&t.value<it.von)it.von=t.value;
     save();redrawEd();
+  }else if(f==="abst"||f==="abstZ"){it[f]=t.value;save();redrawEd();
   }else if(f==="bg"||f==="art"){it[f]=t.value;save();}
 });
 document.getElementById("imp").addEventListener("change",ev=>{
@@ -343,7 +367,7 @@ document.getElementById("imp").addEventListener("change",ev=>{
 render();
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
 if("serviceWorker" in navigator)window.addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{});});
-window.__fb={state:()=>S,ui:ui,render:render,intl:intl,vcard:vcard,ics:ics,status:status};
+window.__fb={state:()=>S,ui:ui,render:render,intl:intl,vcard:vcard,ics:ics,icsAbst:icsAbst,status:status};
 })();
 </script>
 </body>
