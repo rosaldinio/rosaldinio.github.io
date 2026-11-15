@@ -48,7 +48,7 @@ button{font-family:inherit}
 .mchart{display:flex;align-items:flex-end;gap:5px;height:150px;margin-top:12px}
 .mcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;min-width:0}
 .mbar{width:100%;max-width:28px;display:flex;flex-direction:column;justify-content:flex-end;border-radius:6px 6px 3px 3px;overflow:hidden}
-.mbar i{display:block}.mbar i.b{background:var(--grad)}.mbar i.p{background:var(--ang);opacity:.6}.mbar i.w{background:var(--b)}
+.mbar i{display:block}.mbar i.b{background:var(--grad)}.mbar i.p{background:var(--ang);opacity:.6}.mbar i.w{background:var(--b)}.mbar i.e{background:var(--res)}
 .mval{font-size:10px;color:var(--mut);margin-bottom:3px;white-space:nowrap;height:13px}
 .mlab{font-size:10.5px;color:var(--mut);margin-top:6px;text-align:center;line-height:1.15;height:26px}
 .leg{display:flex;gap:14px;font-size:12.5px;color:var(--mut);margin-top:6px}.leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
@@ -319,9 +319,11 @@ function viewAn(){
   const booked=I2.filter(i=>!i.cancel&&i.cl.res),open=I2.filter(i=>status(i)==="angefragt"),canc=I2.filter(i=>i.cancel),lapsed=I2.filter(i=>!i.cancel&&!i.cl.res&&status(i)==="vergangen");
   const rev=booked.reduce((a,i)=>a+revOf(i),0),pot=open.reduce((a,i)=>a+revOf(i),0),noPrice=booked.filter(i=>money(i).state!=="ok").length;
   const quote=Math.round(booked.length/I2.length*100);
+  const bPast=booked.filter(i=>status(i)==="vergangen"),bFut=booked.filter(i=>status(i)!=="vergangen");
+  const revPast=bPast.reduce((a,i)=>a+revOf(i),0),revFut=bFut.reduce((a,i)=>a+revOf(i),0);
   const trav=booked.reduce((a,i)=>a+(money(i).state==="ok"?travel(i):0),0);
   const priced=booked.filter(i=>money(i).state==="ok").length;
-  h+='<div class="kp"><div class="tile"><b>'+fmtE(rev)+'</b><span>Umsatz (reserviert)</span></div><div class="tile"><b>'+booked.length+'</b><span>Buchungen</span></div><div class="tile"><b>'+(priced?fmtE(rev/priced):"–")+'</b><span>Ø pro Buchung</span></div><div class="tile"><b>'+quote+' %</b><span>Quote Anfrage → Buchung</span></div></div>';
+  h+='<div class="kp"><div class="tile"><b>'+fmtE(rev)+'</b><span>Gesamt gebucht</span></div><div class="tile"><b>'+booked.length+'</b><span>Buchungen ('+bPast.length+' durchgeführt)</span></div><div class="tile" style="border-color:rgba(61,220,151,.45)"><b style="color:var(--res)">'+fmtE(revPast)+'</b><span>Bereits eingenommen</span></div><div class="tile"><b>'+fmtE(revFut)+'</b><span>Gebucht, noch ausstehend ('+bFut.length+')</span></div><div class="tile"><b>'+(priced?fmtE(rev/priced):"–")+'</b><span>Ø pro Buchung</span></div><div class="tile"><b>'+quote+' %</b><span>Quote Anfrage → Buchung</span></div></div>';
   h+='<div class="card" style="--st:var(--ang)"><p class="sec">Pipeline</p><div class="hb-r" style="margin-top:0"><span class="hb-l">Noch offen (angefragt)</span><span></span><span class="hb-v"><b style="color:#fff">'+open.length+'</b>'+(pot?' · '+fmtE(pot)+' möglich':'')+'</span></div><div class="hb-r"><span class="hb-l">Abgesagt</span><span></span><span class="hb-v"><b style="color:#fff">'+canc.length+'</b></span></div><div class="hb-r"><span class="hb-l">Verfallen (nie reserviert)</span><span></span><span class="hb-v"><b style="color:#fff">'+lapsed.length+'</b></span></div>'+(noPrice?'<p class="hint" style="margin:6px 0 0">'+noPrice+' Buchung(en) ohne Paket oder Preis sind im Umsatz nicht enthalten.</p>':'')+(booked.filter(i=>i.anfahrtArt==="klaerung").length?'<p class="hint" style="margin:6px 0 0">Bei '+booked.filter(i=>i.anfahrtArt==="klaerung").length+' Buchung(en) ist die Anfahrt noch in Klärung.</p>':'')+'</div>';
   // Monate
   const dated=I2.filter(i=>i.von&&!i.cancel&&(i.cl.res||status(i)==="angefragt"));
@@ -329,9 +331,9 @@ function viewAn(){
   if(ui.ay!=="all")for(let m=1;m<=12;m++)months.push(ui.ay+"-"+pad(m));
   else if(dated.length){const ks=dated.map(i=>i.von.slice(0,7)).sort();let [y,m]=ks[0].split("-").map(Number);const [ye,me]=ks[ks.length-1].split("-").map(Number);while(y<ye||(y===ye&&m<=me)){months.push(y+"-"+pad(m));m++;if(m>12){m=1;y++;}}months=months.slice(-24);}
   if(months.length){
-    const data=months.map(k=>({k:k,b:booked.filter(i=>i.von&&i.von.slice(0,7)===k).reduce((a,i)=>a+revOf(i),0),p:open.filter(i=>i.von&&i.von.slice(0,7)===k).reduce((a,i)=>a+revOf(i),0)}));
-    const mx=Math.max.apply(null,data.map(d=>d.b+d.p))||1;
-    h+='<div class="card" style="--st:var(--b)"><p class="sec">Umsatz pro Monat (nach Veranstaltungsdatum)</p><div class="mchart">'+data.map(d=>{const hb2=d.b/mx*100,hp=d.p/mx*100,[yy,mm]=d.k.split("-");return '<div class="mcol" title="'+d.k+'"><span class="mval">'+(d.b+d.p?kfmt(d.b+d.p):"")+'</span><div class="mbar" style="height:'+Math.max(d.b+d.p?3:0,hb2+hp)+'px"><i class="p" style="height:'+hp/(hb2+hp||1)*100+'%"></i><i class="b" style="height:'+hb2/(hb2+hp||1)*100+'%"></i></div><span class="mlab">'+["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"][+mm-1]+(ui.ay==="all"?"<br>'"+yy.slice(2):"")+'</span></div>';}).join("")+'</div><div class="leg"><span><i style="background:var(--b)"></i>Reserviert</span><span><i style="background:var(--ang);opacity:.6"></i>Noch offen</span></div></div>';
+    const data=months.map(k=>({k:k,e:bPast.filter(i=>i.von&&i.von.slice(0,7)===k).reduce((a,i)=>a+revOf(i),0),b:bFut.filter(i=>i.von&&i.von.slice(0,7)===k).reduce((a,i)=>a+revOf(i),0),p:open.filter(i=>i.von&&i.von.slice(0,7)===k).reduce((a,i)=>a+revOf(i),0)}));
+    const mx=Math.max.apply(null,data.map(d=>d.e+d.b+d.p))||1;
+    h+='<div class="card" style="--st:var(--b)"><p class="sec">Umsatz pro Monat (nach Veranstaltungsdatum)</p><div class="mchart">'+data.map(d=>{const T=d.e+d.b+d.p,H=Math.max(T?3:0,T/mx*100),[yy,mm]=d.k.split("-"),pc=v=>(T?v/T*100:0);return '<div class="mcol" title="'+d.k+'"><span class="mval">'+(T?kfmt(T):"")+'</span><div class="mbar" style="height:'+H+'px"><i class="p" style="height:'+pc(d.p)+'%"></i><i class="b" style="height:'+pc(d.b)+'%"></i><i class="e" style="height:'+pc(d.e)+'%"></i></div><span class="mlab">'+["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"][+mm-1]+(ui.ay==="all"?"<br>'"+yy.slice(2):"")+'</span></div>';}).join("")+'</div><div class="leg"><span><i style="background:var(--res)"></i>Eingenommen</span><span><i style="background:var(--b)"></i>Gebucht</span><span><i style="background:var(--ang);opacity:.6"></i>Angefragt</span></div></div>';
   }
   // Pakete
   const pk=["einzel","allin"].map(k=>{const L=booked.filter(i=>i.paket===k);return {l:PK[k]+" ("+L.length+"×)",v:L.reduce((a,i)=>a+revOf(i),0)};});
