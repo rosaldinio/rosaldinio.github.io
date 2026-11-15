@@ -180,7 +180,7 @@ if(!S.prices)S.prices={einzel:[],allin:[]};if(!S.prices.einzel)S.prices.einzel=[
 function save(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
 let ui={ay:"all",tab:"list",f:"aktiv",q:"",ed:null,isNew:false,other:false,cm:todayIso().slice(0,7),cd:todayIso()};
 const get=id=>S.items.filter(i=>i.id===id)[0];
-function blank(von){return {id:"r"+Date.now()+Math.floor(Math.random()*999),name:"",tel:"",ort:"",art:"",quelle:"",von:von||"",bis:von||"",bg:"",note:"",paket:"",anfahrt:"",abst:"",abstZ:"18:00",cl:{res:false,bg:false},cancel:false,created:todayIso()};}
+function blank(von){return {id:"r"+Date.now()+Math.floor(Math.random()*999),name:"",tel:"",ort:"",art:"",quelle:"",von:von||"",bis:von||"",bg:"",note:"",paket:"",anfahrt:"",anfahrtArt:"klaerung",abst:"",abstZ:"18:00",cl:{res:false,bg:false},cancel:false,created:todayIso()};}
 function status(it){
   if(it.cancel)return "abgesagt";
   const e=it.bis||it.von;
@@ -234,7 +234,10 @@ function priceFor(p,it){
   const L=(S.prices[p]||[]).filter(r=>r.eur!==""&&r.eur!=null&&!isNaN(+r.eur)&&(r.ab||"")<=ref).sort((a,b)=>(a.ab||"").localeCompare(b.ab||""));
   return L.length?+L[L.length-1].eur:null;
 }
-const travel=it=>{const v=parseFloat(String(it.anfahrt).replace(",","."));return isNaN(v)||v<0?0:v;};
+const travelRaw=it=>{const v=parseFloat(String(it.anfahrt).replace(",","."));return isNaN(v)||v<0?0:v;};
+S.items.forEach(it=>{if(!it.anfahrtArt)it.anfahrtArt=travelRaw(it)>0?"lieferung":"klaerung";});
+const travel=it=>it.anfahrtArt==="lieferung"?travelRaw(it):0;
+const AA={klaerung:"In Klärung",abholung:"Abholung",lieferung:"Lieferung"};
 function money(it){
   if(!it.paket)return {state:"open"};
   const p=priceFor(it.paket,it);
@@ -245,7 +248,7 @@ function moneyLabel(it){
   const m=money(it);
   if(m.state==="open")return '<span class="amt w">Paket offen</span>';
   if(m.state==="missing")return '<span class="amt w">Preis fehlt</span>';
-  return '<span class="amt">'+fmtE(m.sum)+'</span>';
+  return '<span class="amt">'+fmtE(m.sum)+'</span>'+(it.anfahrtArt==="klaerung"?' <span class="amt w" style="font-size:12px">+ Anfahrt offen</span>':'');
 }
 /* ---- Liste ---- */
 function filtered(){
@@ -319,7 +322,7 @@ function viewAn(){
   const trav=booked.reduce((a,i)=>a+(money(i).state==="ok"?travel(i):0),0);
   const priced=booked.filter(i=>money(i).state==="ok").length;
   h+='<div class="kp"><div class="tile"><b>'+fmtE(rev)+'</b><span>Umsatz (reserviert)</span></div><div class="tile"><b>'+booked.length+'</b><span>Buchungen</span></div><div class="tile"><b>'+(priced?fmtE(rev/priced):"–")+'</b><span>Ø pro Buchung</span></div><div class="tile"><b>'+quote+' %</b><span>Quote Anfrage → Buchung</span></div></div>';
-  h+='<div class="card" style="--st:var(--ang)"><p class="sec">Pipeline</p><div class="hb-r" style="margin-top:0"><span class="hb-l">Noch offen (angefragt)</span><span></span><span class="hb-v"><b style="color:#fff">'+open.length+'</b>'+(pot?' · '+fmtE(pot)+' möglich':'')+'</span></div><div class="hb-r"><span class="hb-l">Abgesagt</span><span></span><span class="hb-v"><b style="color:#fff">'+canc.length+'</b></span></div><div class="hb-r"><span class="hb-l">Verfallen (nie reserviert)</span><span></span><span class="hb-v"><b style="color:#fff">'+lapsed.length+'</b></span></div>'+(noPrice?'<p class="hint" style="margin:6px 0 0">'+noPrice+' Buchung(en) ohne Paket oder Preis sind im Umsatz nicht enthalten.</p>':'')+'</div>';
+  h+='<div class="card" style="--st:var(--ang)"><p class="sec">Pipeline</p><div class="hb-r" style="margin-top:0"><span class="hb-l">Noch offen (angefragt)</span><span></span><span class="hb-v"><b style="color:#fff">'+open.length+'</b>'+(pot?' · '+fmtE(pot)+' möglich':'')+'</span></div><div class="hb-r"><span class="hb-l">Abgesagt</span><span></span><span class="hb-v"><b style="color:#fff">'+canc.length+'</b></span></div><div class="hb-r"><span class="hb-l">Verfallen (nie reserviert)</span><span></span><span class="hb-v"><b style="color:#fff">'+lapsed.length+'</b></span></div>'+(noPrice?'<p class="hint" style="margin:6px 0 0">'+noPrice+' Buchung(en) ohne Paket oder Preis sind im Umsatz nicht enthalten.</p>':'')+(booked.filter(i=>i.anfahrtArt==="klaerung").length?'<p class="hint" style="margin:6px 0 0">Bei '+booked.filter(i=>i.anfahrtArt==="klaerung").length+' Buchung(en) ist die Anfahrt noch in Klärung.</p>':'')+'</div>';
   // Monate
   const dated=I2.filter(i=>i.von&&!i.cancel&&(i.cl.res||status(i)==="angefragt"));
   let months=[];
@@ -355,7 +358,7 @@ function viewAn(){
   const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
   const dn=v=>v==null?"–":(Math.round(v*10)/10).toString().replace(".",",");
   const yr=ui.ay!=="all"?+ui.ay:null,dy=yr?((yr%4===0&&yr%100!==0)||yr%400===0?366:365):0;
-  h+='<div class="card" style="--st:var(--res)"><p class="sec">Kennzahlen</p><div class="hb-r" style="margin-top:0"><span class="hb-l">Gebuchte Tage</span><span></span><span class="hb-v"><b style="color:#fff">'+days.size+'</b></span></div>'+(yr?'<div class="hb-r"><span class="hb-l">Auslastung '+yr+'</span><span class="hb-t"><i style="width:'+Math.min(100,days.size/dy*100)+'%"></i></span><span class="hb-v">'+dn(days.size/dy*100)+' %</span></div>':'')+'<div class="hb-r"><span class="hb-l">Ø Vorlauf Anfrage → Termin</span><span></span><span class="hb-v"><b style="color:#fff">'+(lead.length?Math.round(avg(lead))+' Tage':'–')+'</b></span></div><div class="hb-r"><span class="hb-l">Ø Dauer pro Buchung</span><span></span><span class="hb-v"><b style="color:#fff">'+dn(avg(dur))+(dur.length?' Tage':'')+'</b></span></div></div>';
+  h+='<div class="card" style="--st:var(--res)"><p class="sec">Kennzahlen</p><div class="hb-r" style="margin-top:0"><span class="hb-l">Gebuchte Tage</span><span></span><span class="hb-v"><b style="color:#fff">'+days.size+'</b></span></div>'+(yr?'<div class="hb-r"><span class="hb-l">Auslastung '+yr+'</span><span class="hb-t"><i style="width:'+Math.min(100,days.size/dy*100)+'%"></i></span><span class="hb-v">'+dn(days.size/dy*100)+' %</span></div>':'')+'<div class="hb-r"><span class="hb-l">Abholung / Lieferung</span><span></span><span class="hb-v"><b style="color:#fff">'+booked.filter(i=>i.anfahrtArt==="abholung").length+' / '+booked.filter(i=>i.anfahrtArt==="lieferung").length+'</b></span></div><div class="hb-r"><span class="hb-l">Ø Vorlauf Anfrage → Termin</span><span></span><span class="hb-v"><b style="color:#fff">'+(lead.length?Math.round(avg(lead))+' Tage':'–')+'</b></span></div><div class="hb-r"><span class="hb-l">Ø Dauer pro Buchung</span><span></span><span class="hb-v"><b style="color:#fff">'+dn(avg(dur))+(dur.length?' Tage':'')+'</b></span></div></div>';
   return h;
 }
 
@@ -381,7 +384,7 @@ function edHtml(it){
    '<button class="ck'+(it.cl.res?' on':'')+'" data-act="tick" data-k="res"><span class="bx">'+I.chk+'</span><span>Reserviert'+(it.cl.res?'':'<small>Termin verbindlich geblockt</small>')+'</span></button>'+
    '<button class="ck'+(it.cl.bg?' on':'')+'" data-act="tick" data-k="bg"><span class="bx">'+I.chk+'</span><span>Hintergrund abgestimmt'+(it.cl.bg&&it.bg?'<small>'+esc(it.bg)+'</small>':'')+'</span></button>'+
    '<div class="pkw"><div class="ck'+(it.paket?' on':'')+'"><span class="bx">'+I.chk+'</span><span>Paket ausgewählt'+(it.paket?'<small>'+PK[it.paket]+'</small>':'<small>Bitte wählen</small>')+'</span></div><div class="seg">'+Object.keys(PK).map(k=>'<button class="chip" data-act="pk" data-v="'+k+'" aria-pressed="'+(it.paket===k)+'">'+PK[k]+'</button>').join("")+'</div></div></div>';
-  h+='<div class="card" style="--st:var(--res)"><p class="sec">Preis</p><label class="f" style="margin-top:0">Anfahrt (Pauschale in €, optional)<input data-f="anfahrt" type="number" inputmode="decimal" step="0.01" min="0" value="'+esc(it.anfahrt)+'" placeholder="0"></label><div class="sumbox" id="sumbox">'+sumHtml(it)+'</div></div>';
+  h+='<div class="card" style="--st:var(--res)"><p class="sec">Preis</p><p class="f" style="margin-top:0">Übergabe der Fotobox</p><div class="chips wrap" style="margin-top:6px">'+Object.keys(AA).map(k=>'<button class="chip" data-act="aart" data-v="'+k+'" aria-pressed="'+(it.anfahrtArt===k)+'">'+AA[k]+'</button>').join("")+'</div>'+(it.anfahrtArt==="lieferung"?'<label class="f">Anfahrt, Pauschale in €<input data-f="anfahrt" type="number" inputmode="decimal" step="0.01" min="0" value="'+esc(it.anfahrt)+'" placeholder="z. B. 25"></label>':it.anfahrtArt==="abholung"?'<p class="hint">Der Kunde holt die Box ab, es fällt keine Anfahrt an.</p>':'<p class="hint">Noch offen, ob geliefert oder abgeholt wird. Die Anfahrt ist in der Summe nicht enthalten.</p>')+'<div class="sumbox" id="sumbox">'+sumHtml(it)+'</div></div>';
   const ar=abstRange(it);
   h+='<div class="card" style="--st:var(--b)"><p class="sec">Abstimmtermin</p>';
   if(!ar)h+='<p class="hint" style="margin:0">'+(it.von?'Die Veranstaltung liegt in der Vergangenheit.':'Trage zuerst das Datum der Veranstaltung ein. Der Abstimmtermin kann bis zu 6 Wochen davor liegen.')+'</p>';
@@ -397,11 +400,16 @@ function edHtml(it){
   h+='<div class="rows"><button class="btn ghost" data-act="ics"'+(it.von?'':' disabled')+'>Termin in den Kalender</button><button class="btn ghost" data-act="cancel">'+(it.cancel?'Anfrage wieder aktivieren':'Anfrage absagen')+'</button><button class="btn ghost danger" data-act="del">Löschen</button></div>';
   return h;
 }
+function anfLine(it){
+  if(it.anfahrtArt==="abholung")return '<div><span>Abholung durch Kunden</span><span>0 €</span></div>';
+  if(it.anfahrtArt==="lieferung")return '<div><span>Anfahrt</span><span>'+fmtE(travel(it))+'</span></div>';
+  return '<div><span>Anfahrt</span><span style="color:var(--ang)">in Klärung</span></div>';
+}
 function sumHtml(it){
   const m=money(it);
-  if(m.state==="open")return '<div>Paket</div><div class="tot" style="color:var(--ang)"><span>Noch kein Paket gewählt</span></div>'+(travel(it)?'<div><span>Anfahrt</span><span>'+fmtE(travel(it))+'</span></div>':'');
-  if(m.state==="missing")return '<div><span>'+PK[it.paket]+'</span><span style="color:var(--ang)">kein Preis hinterlegt</span></div><div><span>Anfahrt</span><span>'+fmtE(m.travel)+'</span></div><div class="tot"><span>Summe</span><span>–</span></div><p class="hint" style="margin:8px 0 0">Preise findest du oben rechts unter Einstellungen.</p>';
-  return '<div><span>'+PK[it.paket]+'</span><span>'+fmtE(m.pk)+'</span></div><div><span>Anfahrt</span><span>'+fmtE(m.travel)+'</span></div><div class="tot"><span>Summe</span><span>'+fmtE(m.sum)+'</span></div>';
+  if(m.state==="open")return '<div class="tot" style="color:var(--ang)"><span>Noch kein Paket gewählt</span></div>'+anfLine(it);
+  if(m.state==="missing")return '<div><span>'+PK[it.paket]+'</span><span style="color:var(--ang)">kein Preis hinterlegt</span></div>'+anfLine(it)+'<div class="tot"><span>Summe</span><span>–</span></div><p class="hint" style="margin:8px 0 0">Preise findest du oben rechts unter Einstellungen.</p>';
+  return '<div><span>'+PK[it.paket]+'</span><span>'+fmtE(m.pk)+'</span></div>'+anfLine(it)+'<div class="tot"><span>Summe</span><span>'+fmtE(m.sum)+'</span></div>'+(it.anfahrtArt==="klaerung"?'<p class="hint" style="margin:8px 0 0">Summe ohne Anfahrt, die ist noch in Klärung.</p>':'');
 }
 function openEd(id,isNew){ui.ed=id;ui.isNew=!!isNew;ui.other=false;const e=document.getElementById("ed");document.getElementById("edIn").innerHTML=edHtml(get(id));e.classList.add("on");e.scrollTop=0;document.body.classList.add("noscroll");}
 function redrawEd(){const e=document.getElementById("ed"),y=e.scrollTop;document.getElementById("edIn").innerHTML=edHtml(get(ui.ed));e.scrollTop=y;}
@@ -437,6 +445,7 @@ document.addEventListener("click",ev=>{
     case "qwa":ev.stopPropagation();openUrl("https://wa.me/"+intl(get(el.dataset.id).tel));break;
     case "new":newReq();break;
     case "newday":newReq(ui.cd);break;
+    case "aart":it.anfahrtArt=el.dataset.v;save();redrawEd();break;
     case "ay":ui.ay=el.dataset.v;render();break;
     case "fil":ui.f=el.dataset.v;render();break;
     case "cm":{const [y,m]=ui.cm.split("-").map(Number),d=new Date(y,m-1+(+el.dataset.d),1);ui.cm=d.getFullYear()+"-"+pad(d.getMonth()+1);render();break;}
