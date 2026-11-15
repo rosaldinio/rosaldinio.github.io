@@ -45,6 +45,19 @@ button{font-family:inherit}
 .sumbox{background:var(--card2);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-top:12px}
 .sumbox div{display:flex;justify-content:space-between;padding:3px 0;color:var(--mut)}
 .sumbox .tot{color:#fff;font-weight:700;font-size:19px;border-top:1px solid var(--line);margin-top:6px;padding-top:8px}
+.mchart{display:flex;align-items:flex-end;gap:5px;height:150px;margin-top:12px}
+.mcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;min-width:0}
+.mbar{width:100%;max-width:28px;display:flex;flex-direction:column;justify-content:flex-end;border-radius:6px 6px 3px 3px;overflow:hidden}
+.mbar i{display:block}.mbar i.b{background:var(--grad)}.mbar i.p{background:var(--ang);opacity:.6}.mbar i.w{background:var(--b)}
+.mval{font-size:10px;color:var(--mut);margin-bottom:3px;white-space:nowrap;height:13px}
+.mlab{font-size:10.5px;color:var(--mut);margin-top:6px;text-align:center;line-height:1.15;height:26px}
+.leg{display:flex;gap:14px;font-size:12.5px;color:var(--mut);margin-top:6px}.leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.hb-r{display:grid;grid-template-columns:minmax(80px,38%) 1fr auto;gap:10px;align-items:center;margin:9px 0;font-size:14.5px}
+.hb-l{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hb-t{height:10px;background:var(--card2);border-radius:6px;overflow:hidden;position:relative}.hb-t i{display:block;height:100%;background:var(--grad);border-radius:6px}.hb-t i.l{position:absolute;left:0;top:0;background:rgba(255,255,255,.14)}
+.hb-v{color:var(--mut);font-size:13px;text-align:right;white-space:nowrap}
+.kp{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.kp .tile b{font-size:24px}
 .chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -14px 14px;padding:0 14px}.chips::-webkit-scrollbar{display:none}
 .chip{font:600 14px var(--font);color:var(--mut);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:9px 15px;white-space:nowrap;cursor:pointer;min-height:40px}
 .chip[aria-pressed="true"]{background:var(--grad);border-color:transparent;color:#fff}
@@ -63,7 +76,7 @@ button{font-family:inherit}
 .rq-a{display:flex;gap:6px;flex:none}
 .empty{text-align:center;color:var(--mut);padding:40px 10px}.empty b{display:block;color:var(--ink);font-size:20px;margin-bottom:6px}
 .sec{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);font-weight:600;margin:0 0 8px}
-nav{position:fixed;left:0;right:0;bottom:0;background:rgba(14,15,28,.9);backdrop-filter:blur(14px);border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;padding:6px 8px calc(6px + env(safe-area-inset-bottom));z-index:20;max-width:640px;margin:0 auto}
+nav{position:fixed;left:0;right:0;bottom:0;background:rgba(14,15,28,.9);backdrop-filter:blur(14px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,1fr);padding:6px 8px calc(6px + env(safe-area-inset-bottom));z-index:20;max-width:640px;margin:0 auto}
 .tab{background:none;border:0;color:var(--mut);font:600 12.5px var(--font);display:grid;justify-items:center;gap:3px;padding:8px 0;min-height:54px;cursor:pointer}
 .tab svg{width:24px;height:24px}.tab[aria-current="page"]{color:#fff}.tab[aria-current="page"] svg{stroke:var(--a)}
 .fab{position:fixed;right:max(18px,calc(50% - 302px));bottom:calc(78px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;border:0;background:var(--grad);color:#fff;display:grid;place-items:center;box-shadow:0 10px 30px rgba(139,92,246,.5);z-index:25;cursor:pointer}
@@ -118,6 +131,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 <nav aria-label="Hauptmenü">
 <button class="tab" data-tab="list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>Anfragen</button>
 <button class="tab" data-tab="cal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 10h16"/></svg>Kalender</button>
+<button class="tab" data-tab="an"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M12 20V5M19 20v-8"/></svg>Analyse</button>
 </nav>
 <div id="ed"><div class="ed-in" id="edIn"></div></div>
 <div id="veil" data-act="closeSheet"></div>
@@ -164,7 +178,7 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;"
 let S=(function(){try{const o=JSON.parse(localStorage.getItem(LS));if(o&&Array.isArray(o.items))return o;}catch(e){}return {v:1,items:[]};})();
 if(!S.prices)S.prices={einzel:[],allin:[]};if(!S.prices.einzel)S.prices.einzel=[];if(!S.prices.allin)S.prices.allin=[];if(!S.priceBy)S.priceBy="event";
 function save(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
-let ui={tab:"list",f:"aktiv",q:"",ed:null,isNew:false,other:false,cm:todayIso().slice(0,7),cd:todayIso()};
+let ui={ay:"all",tab:"list",f:"aktiv",q:"",ed:null,isNew:false,other:false,cm:todayIso().slice(0,7),cd:todayIso()};
 const get=id=>S.items.filter(i=>i.id===id)[0];
 function blank(von){return {id:"r"+Date.now()+Math.floor(Math.random()*999),name:"",tel:"",ort:"",art:"",quelle:"",von:von||"",bis:von||"",bg:"",note:"",paket:"",anfahrt:"",abst:"",abstZ:"18:00",cl:{res:false,bg:false},cancel:false,created:todayIso()};}
 function status(it){
@@ -283,10 +297,73 @@ function viewCal(){
   return h;
 }
 const onDay=iso=>S.items.filter(i=>!i.cancel&&i.von&&i.von<=iso&&(i.bis||i.von)>=iso);
+
+/* ---- Analyse ---- */
+const refD=it=>it.von||it.created;
+const revOf=it=>{const m=money(it);return m.state==="ok"?m.sum:0;};
+const kfmt=v=>v>=1000?(Math.round(v/100)/10).toString().replace(".",",")+"k":String(Math.round(v));
+function hb(rows,fmt){
+  if(!rows.length)return '<p class="hint">Noch keine Daten.</p>';
+  const mx=Math.max.apply(null,rows.map(r=>r.v))||1;
+  return rows.map(r=>'<div class="hb-r"><span class="hb-l">'+esc(r.l)+'</span><span class="hb-t"><i style="width:'+Math.max(r.v?3:0,r.v/mx*100)+'%"></i></span><span class="hb-v">'+(r.t||fmt(r.v))+'</span></div>').join("");
+}
+function viewAn(){
+  const years=[...new Set(S.items.map(i=>refD(i).slice(0,4)))].sort().reverse();
+  if(ui.ay!=="all"&&years.indexOf(ui.ay)<0)ui.ay="all";
+  let h='<div class="chips"><button class="chip" data-act="ay" data-v="all" aria-pressed="'+(ui.ay==="all")+'">Alles</button>'+years.map(y=>'<button class="chip" data-act="ay" data-v="'+y+'" aria-pressed="'+(ui.ay===y)+'">'+y+'</button>').join("")+'</div>';
+  const I2=S.items.filter(i=>ui.ay==="all"||refD(i).slice(0,4)===ui.ay);
+  if(!I2.length)return h+'<div class="empty"><b>Noch keine Daten</b>Sobald Anfragen angelegt sind, siehst du hier Umsatz, Quote, Auslastung und mehr.</div>';
+  const booked=I2.filter(i=>!i.cancel&&i.cl.res),open=I2.filter(i=>status(i)==="angefragt"),canc=I2.filter(i=>i.cancel),lapsed=I2.filter(i=>!i.cancel&&!i.cl.res&&status(i)==="vergangen");
+  const rev=booked.reduce((a,i)=>a+revOf(i),0),pot=open.reduce((a,i)=>a+revOf(i),0),noPrice=booked.filter(i=>money(i).state!=="ok").length;
+  const quote=Math.round(booked.length/I2.length*100);
+  const trav=booked.reduce((a,i)=>a+(money(i).state==="ok"?travel(i):0),0);
+  const priced=booked.filter(i=>money(i).state==="ok").length;
+  h+='<div class="kp"><div class="tile"><b>'+fmtE(rev)+'</b><span>Umsatz (reserviert)</span></div><div class="tile"><b>'+booked.length+'</b><span>Buchungen</span></div><div class="tile"><b>'+(priced?fmtE(rev/priced):"–")+'</b><span>Ø pro Buchung</span></div><div class="tile"><b>'+quote+' %</b><span>Quote Anfrage → Buchung</span></div></div>';
+  h+='<div class="card" style="--st:var(--ang)"><p class="sec">Pipeline</p><div class="hb-r" style="margin-top:0"><span class="hb-l">Noch offen (angefragt)</span><span></span><span class="hb-v"><b style="color:#fff">'+open.length+'</b>'+(pot?' · '+fmtE(pot)+' möglich':'')+'</span></div><div class="hb-r"><span class="hb-l">Abgesagt</span><span></span><span class="hb-v"><b style="color:#fff">'+canc.length+'</b></span></div><div class="hb-r"><span class="hb-l">Verfallen (nie reserviert)</span><span></span><span class="hb-v"><b style="color:#fff">'+lapsed.length+'</b></span></div>'+(noPrice?'<p class="hint" style="margin:6px 0 0">'+noPrice+' Buchung(en) ohne Paket oder Preis sind im Umsatz nicht enthalten.</p>':'')+'</div>';
+  // Monate
+  const dated=I2.filter(i=>i.von&&!i.cancel&&(i.cl.res||status(i)==="angefragt"));
+  let months=[];
+  if(ui.ay!=="all")for(let m=1;m<=12;m++)months.push(ui.ay+"-"+pad(m));
+  else if(dated.length){const ks=dated.map(i=>i.von.slice(0,7)).sort();let [y,m]=ks[0].split("-").map(Number);const [ye,me]=ks[ks.length-1].split("-").map(Number);while(y<ye||(y===ye&&m<=me)){months.push(y+"-"+pad(m));m++;if(m>12){m=1;y++;}}months=months.slice(-24);}
+  if(months.length){
+    const data=months.map(k=>({k:k,b:booked.filter(i=>i.von&&i.von.slice(0,7)===k).reduce((a,i)=>a+revOf(i),0),p:open.filter(i=>i.von&&i.von.slice(0,7)===k).reduce((a,i)=>a+revOf(i),0)}));
+    const mx=Math.max.apply(null,data.map(d=>d.b+d.p))||1;
+    h+='<div class="card" style="--st:var(--b)"><p class="sec">Umsatz pro Monat (nach Veranstaltungsdatum)</p><div class="mchart">'+data.map(d=>{const hb2=d.b/mx*100,hp=d.p/mx*100,[yy,mm]=d.k.split("-");return '<div class="mcol" title="'+d.k+'"><span class="mval">'+(d.b+d.p?kfmt(d.b+d.p):"")+'</span><div class="mbar" style="height:'+Math.max(d.b+d.p?3:0,hb2+hp)+'px"><i class="p" style="height:'+hp/(hb2+hp||1)*100+'%"></i><i class="b" style="height:'+hb2/(hb2+hp||1)*100+'%"></i></div><span class="mlab">'+["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"][+mm-1]+(ui.ay==="all"?"<br>'"+yy.slice(2):"")+'</span></div>';}).join("")+'</div><div class="leg"><span><i style="background:var(--b)"></i>Reserviert</span><span><i style="background:var(--ang);opacity:.6"></i>Noch offen</span></div></div>';
+  }
+  // Pakete
+  const pk=["einzel","allin"].map(k=>{const L=booked.filter(i=>i.paket===k);return {l:PK[k]+" ("+L.length+"×)",v:L.reduce((a,i)=>a+revOf(i),0)};});
+  const nop=booked.filter(i=>!i.paket).length;
+  h+='<div class="card" style="--st:var(--res)"><p class="sec">Pakete (Umsatz)</p>'+hb(pk,fmtE)+(nop?'<p class="hint" style="margin:6px 0 0">'+nop+' Buchung(en) ohne Paket.</p>':'')+(trav?'<p class="hint" style="margin:6px 0 0">Darin enthalten: '+fmtE(trav)+' Anfahrt.</p>':'')+'</div>';
+  // Quellen
+  const srcs=SRC.concat([""]);
+  const sr=srcs.map(q=>{const L=I2.filter(i=>(i.quelle||"")===q),B=L.filter(i=>!i.cancel&&i.cl.res);return {l:q||"Unbekannt",n:L.length,b:B.length};}).filter(r=>r.n);
+  const smx=Math.max.apply(null,sr.map(r=>r.n))||1;
+  h+='<div class="card" style="--st:var(--a)"><p class="sec">Woher kommen die Anfragen?</p>'+(sr.length?sr.map(r=>'<div class="hb-r"><span class="hb-l">'+esc(r.l)+'</span><span class="hb-t"><i class="l" style="width:'+r.n/smx*100+'%"></i><i style="width:'+r.b/smx*100+'%"></i></span><span class="hb-v">'+r.b+' von '+r.n+' · '+Math.round(r.b/r.n*100)+' %</span></div>').join("")+'<p class="hint" style="margin:6px 0 0">Heller Balken: Anfragen. Farbig: Buchungen.</p>':'<p class="hint">Noch keine Daten.</p>')+'</div>';
+  // Art, Orte, Hintergrund
+  const cnt=(L,f)=>{const m={},lab={};L.forEach(i=>{const v=(f(i)||"").trim();if(!v)return;const k=v.toLowerCase();m[k]=(m[k]||0)+1;if(!lab[k])lab[k]=v;});return Object.keys(m).map(k=>({l:lab[k],v:m[k]})).sort((a,b)=>b.v-a.v).slice(0,6);};
+  const n0=v=>v+"×";
+  h+='<div class="card" style="--st:var(--b)"><p class="sec">Art der Veranstaltung</p>'+hb(cnt(I2.filter(i=>!i.cancel),i=>i.art),n0)+'</div>';
+  h+='<div class="card" style="--st:var(--b)"><p class="sec">Beliebteste Orte</p>'+hb(cnt(I2.filter(i=>!i.cancel),i=>i.ort),n0)+'</div>';
+  h+='<div class="card" style="--st:var(--b)"><p class="sec">Beliebteste Hintergründe</p>'+hb(cnt(I2.filter(i=>!i.cancel),i=>i.bg),n0)+'</div>';
+  // Wochentage
+  const wd=[0,0,0,0,0,0,0];booked.forEach(i=>{if(i.von)wd[(dt(i.von).getDay()+6)%7]++;});
+  const wmx=Math.max.apply(null,wd)||1;
+  h+='<div class="card" style="--st:var(--b)"><p class="sec">Wochentage der Buchungen (Beginn)</p><div class="mchart" style="height:120px">'+wd.map((n,i)=>'<div class="mcol"><span class="mval">'+(n||"")+'</span><div class="mbar" style="height:'+Math.max(n?4:0,n/wmx*80)+'px"><i class="w" style="height:100%"></i></div><span class="mlab" style="height:16px">'+["Mo","Di","Mi","Do","Fr","Sa","So"][i]+'</span></div>').join("")+'</div></div>';
+  // Kennzahlen
+  const days=new Set();booked.forEach(i=>{if(!i.von)return;let d=i.von;const e=i.bis||i.von;let g=0;while(d<=e&&g++<60){days.add(d);d=addDays(d,1);}});
+  const lead=booked.filter(i=>i.von&&i.created&&i.von>=i.created).map(i=>diffDays(i.created,i.von));
+  const dur=booked.filter(i=>i.von).map(i=>diffDays(i.von,i.bis||i.von)+1);
+  const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+  const dn=v=>v==null?"–":(Math.round(v*10)/10).toString().replace(".",",");
+  const yr=ui.ay!=="all"?+ui.ay:null,dy=yr?((yr%4===0&&yr%100!==0)||yr%400===0?366:365):0;
+  h+='<div class="card" style="--st:var(--res)"><p class="sec">Kennzahlen</p><div class="hb-r" style="margin-top:0"><span class="hb-l">Gebuchte Tage</span><span></span><span class="hb-v"><b style="color:#fff">'+days.size+'</b></span></div>'+(yr?'<div class="hb-r"><span class="hb-l">Auslastung '+yr+'</span><span class="hb-t"><i style="width:'+Math.min(100,days.size/dy*100)+'%"></i></span><span class="hb-v">'+dn(days.size/dy*100)+' %</span></div>':'')+'<div class="hb-r"><span class="hb-l">Ø Vorlauf Anfrage → Termin</span><span></span><span class="hb-v"><b style="color:#fff">'+(lead.length?Math.round(avg(lead))+' Tage':'–')+'</b></span></div><div class="hb-r"><span class="hb-l">Ø Dauer pro Buchung</span><span></span><span class="hb-v"><b style="color:#fff">'+dn(avg(dur))+(dur.length?' Tage':'')+'</b></span></div></div>';
+  return h;
+}
+
 /* ---- Render ---- */
 function render(){
   document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-current",b.dataset.tab===ui.tab?"page":"false"));
-  document.getElementById("view").innerHTML=ui.tab==="list"?viewList():viewCal();
+  document.getElementById("view").innerHTML=ui.tab==="list"?viewList():ui.tab==="cal"?viewCal():viewAn();
 }
 /* ---- Editor ---- */
 function edHtml(it){
@@ -361,6 +438,7 @@ document.addEventListener("click",ev=>{
     case "qwa":ev.stopPropagation();openUrl("https://wa.me/"+intl(get(el.dataset.id).tel));break;
     case "new":newReq();break;
     case "newday":newReq(ui.cd);break;
+    case "ay":ui.ay=el.dataset.v;render();break;
     case "fil":ui.f=el.dataset.v;render();break;
     case "cm":{const [y,m]=ui.cm.split("-").map(Number),d=new Date(y,m-1+(+el.dataset.d),1);ui.cm=d.getFullYear()+"-"+pad(d.getMonth()+1);render();break;}
     case "cday":ui.cd=el.dataset.d;render();break;
