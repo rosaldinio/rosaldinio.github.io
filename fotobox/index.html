@@ -344,7 +344,6 @@ function viewAn(){
   const n0=v=>v+"×";
   h+='<div class="card" style="--st:var(--b)"><p class="sec">Art der Veranstaltung</p>'+hb(cnt(I2.filter(i=>!i.cancel),i=>i.art),n0)+'</div>';
   h+='<div class="card" style="--st:var(--b)"><p class="sec">Beliebteste Orte</p>'+hb(cnt(I2.filter(i=>!i.cancel),i=>i.ort),n0)+'</div>';
-  h+='<div class="card" style="--st:var(--b)"><p class="sec">Beliebteste Hintergründe</p>'+hb(cnt(I2.filter(i=>!i.cancel),i=>i.bg),n0)+'</div>';
   // Wochentage
   const wd=[0,0,0,0,0,0,0];booked.forEach(i=>{if(i.von)wd[(dt(i.von).getDay()+6)%7]++;});
   const wmx=Math.max.apply(null,wd)||1;
