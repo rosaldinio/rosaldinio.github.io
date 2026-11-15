@@ -169,6 +169,20 @@ h1,h2,h3{margin:0;font-family:var(--display);text-transform:uppercase;letter-spa
 .up{color:var(--good)}
 span.up,b.up{font-weight:700}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/*SUPP-BEGIN*/
+.sp-row{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:12px 0;border-bottom:1px solid var(--line);min-height:56px}
+.sp-row:last-of-type{border-bottom:0}
+.sp-bx{width:34px;height:34px;border-radius:50%;border:2px solid #3a424d;display:grid;place-items:center;flex:none;color:var(--accent-ink)}
+.sp-bx svg{width:18px;height:18px;opacity:0}
+.sp-row.on .sp-bx{background:var(--good);border-color:var(--good)}.sp-row.on .sp-bx svg{opacity:1}
+.sp-row b{display:block;font-weight:600}.sp-row small{color:var(--mute);font-size:13px}
+.sp-week{display:flex;gap:6px;margin-top:12px;align-items:flex-end}
+.sp-d{flex:1;text-align:center;font-size:11px;color:var(--mute)}
+.sp-d i{display:block;height:8px;border-radius:4px;background:var(--surface-2);margin-bottom:5px}
+.sp-d i.p{background:#8a4a35}.sp-d i.f{background:var(--good)}.sp-d.t span{color:var(--text);font-weight:700}
+.sp-head{display:flex;justify-content:space-between;align-items:center}
+.sp-opt{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+/*SUPP-END*/
 </style>
 </head>
 <body>
@@ -384,6 +398,7 @@ function viewHeute(){
     ORDER.map(function(t){return '<button class="chip" data-act="pick" data-type="'+t+'" aria-pressed="'+(t===type)+'">'+t+'</button>';}).join("")+'</div></section>';
   var up=upcoming(5).filter(function(x){return x.kind==="train";}).slice(1,4);
   h+='<section class="card"><div class="eyebrow">Danach</div>'+up.map(function(x,i){return '<div class="slot"><div class="t">'+x.type+'</div><div><div class="d">'+lab(x.n)+'</div><div class="s">'+esc(state.plan[x.type].title)+'</div></div></div>';}).join("")+'</section>';
+  h+=suppCard();
   h+='<p class="sync" id="sync">'+(cloudOk?"Fortschritt wird gespeichert und geräteübergreifend gesichert.":"Fortschritt wird auf diesem Gerät gespeichert. Sicherung unter „Plan“.")+'</p>';
   return h;
 }
@@ -432,7 +447,7 @@ function viewPlan(){
       '<div class="note" style="color:var(--text);font-weight:600">'+esc(p.title)+'</div>'+
       '<ul class="preview">'+exRows(p.ex)+'</ul></section>';
   });
-  h+='<p class="sync"><button class="link" data-act="resetPlan">Plan auf Standard zurücksetzen</button></p><p class="sync"><button class="link" data-act="export">Sicherung speichern</button> · <button class="link" data-act="import">Sicherung einspielen</button></p>';
+  h+='<p class="sync"><button class="link" data-act="resetPlan">Plan auf Standard zurücksetzen</button></p><p class="sync"><button class="link" data-act="export">Sicherung speichern</button> · <button class="link" data-act="import">Sicherung einspielen</button></p>'+suppPlanLink();
   return h;
 }
 
@@ -652,6 +667,50 @@ function finishSession(){
   render();window.scrollTo(0,0);
 }
 
+/*SUPP-BEGIN*/
+/* Supplement-Tracker (Test). Eigener Speicher, nicht Teil von Plan und Sicherung.
+   Rückbau: im Plan-Tab ausschalten oder alle Daten löschen. Im Code: alles zwischen SUPP-BEGIN und SUPP-END plus die Zeilen mit "supp". */
+var SUPP_LS="srgym-supp-v1";
+var SUPP_ITEMS=[["krea","Kreatin","3 bis 5 g in Wasser, täglich"],["prot","Protein-Shake","bei Bedarf für die Tagesmenge"],["vitd","Vitamin D","Tablette oder Tropfen"]];
+var supp=(function(){try{var o=JSON.parse(localStorage.getItem(SUPP_LS));if(o&&o.items)return o;}catch(e){}return {on:true,items:{krea:true,prot:true,vitd:false},log:{}};})();
+function suppSave(){try{localStorage.setItem(SUPP_LS,JSON.stringify(supp));}catch(e){}}
+function suppActive(){return SUPP_ITEMS.filter(function(x){return supp.items[x[0]];});}
+function suppCard(){
+  if(!supp.on)return "";
+  var act=suppActive(),t=today(),log=supp.log[t]||{};
+  var h='<section class="card"><div class="sp-head"><div class="eyebrow">Täglich · Test</div><button class="link" data-act="suppCfg">Anpassen</button></div>';
+  if(!act.length)h+='<p class="note">Wähle unter „Anpassen“, was du tracken möchtest.</p>';
+  act.forEach(function(x){h+='<button class="sp-row'+(log[x[0]]?' on':'')+'" data-act="suppTick" data-k="'+x[0]+'"><span class="sp-bx">'+CHECK+'</span><span><b>'+x[1]+'</b><small>'+x[2]+'</small></span></button>';});
+  if(act.length){
+    h+='<div class="sp-week">';
+    for(var i=6;i>=0;i--){var n=t-i,l=supp.log[n]||{},c=act.filter(function(x){return l[x[0]];}).length;
+      h+='<div class="sp-d'+(i===0?' t':'')+'"><i class="'+(c===act.length?'f':c?'p':'')+'"></i><span>'+fmt(n,{weekday:"narrow"})+'</span></div>';}
+    h+='</div>';
+  }
+  return h+'</section>';
+}
+function suppPlanLink(){return '<p class="sync"><button class="link" data-act="suppCfg">Supplement-Tracker (Test): '+(supp.on?'an':'aus')+'</button></p>';}
+function suppSheet(){
+  openSheet('<h3>Supplement-Tracker</h3><p class="note">Ein Test. Er läuft getrennt von Plan, Verlauf und Sicherung und lässt sich jederzeit abschalten.</p>'+
+    '<div class="sp-opt"><b>Tracker anzeigen</b><button class="chip" data-act="suppOn" aria-pressed="'+supp.on+'">'+(supp.on?'An':'Aus')+'</button></div>'+
+    SUPP_ITEMS.map(function(x){return '<div class="sp-opt"><span>'+x[1]+'</span><button class="chip" data-act="suppItem" data-k="'+x[0]+'" aria-pressed="'+!!supp.items[x[0]]+'">'+(supp.items[x[0]]?'Aktiv':'Aus')+'</button></div>';}).join("")+
+    '<div class="sp-opt"><span>Tägliche Erinnerung<br><small style="color:var(--mute)">8:00 Uhr, als Kalendereintrag</small></span><button class="chip" data-act="suppIcs">Laden</button></div>'+
+    '<p class="sync"><button class="link" data-act="suppWipe">Test beenden und Daten löschen</button></p><div class="btns"><button class="btn" data-act="closeSheet">Fertig</button></div>');
+}
+function suppIcs(){
+  var d=fmt(today(),{year:"numeric",month:"2-digit",day:"2-digit"}).split(".").reverse().join("");
+  var txt=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//SR Gym//DE","BEGIN:VEVENT","UID:srgym-supp@gym","DTSTAMP:"+new Date().toISOString().replace(/[-:]/g,"").slice(0,15)+"Z","DTSTART:"+d+"T080000","DTEND:"+d+"T081000","RRULE:FREQ=DAILY","SUMMARY:Kreatin und Supplemente nehmen","BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:Kreatin und Supplemente nehmen","TRIGGER:PT0M","END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n");
+  try{var u=URL.createObjectURL(new Blob([txt],{type:"text/calendar"})),an=document.createElement("a");an.href=u;an.download="supplemente-erinnerung.ics";document.body.appendChild(an);an.click();an.remove();setTimeout(function(){URL.revokeObjectURL(u);},3000);}catch(e){}
+}
+function suppAct(a,el){
+  if(a==="suppTick"){var t=today(),l=supp.log[t]||(supp.log[t]={});l[el.dataset.k]=l[el.dataset.k]?0:1;suppSave();render();}
+  else if(a==="suppCfg")suppSheet();
+  else if(a==="suppOn"){supp.on=!supp.on;suppSave();suppSheet();render();}
+  else if(a==="suppItem"){supp.items[el.dataset.k]=!supp.items[el.dataset.k];suppSave();suppSheet();render();}
+  else if(a==="suppIcs")suppIcs();
+  else if(a==="suppWipe"){try{localStorage.removeItem(SUPP_LS);}catch(e){}supp={on:false,items:{krea:true,prot:true,vitd:false},log:{}};closeSheet();render();}
+}
+/*SUPP-END*/
 function setTab(t){ui.tab=t;render();window.scrollTo(0,0);}
 function curEdit(){return state.plan[ui.edit];}
 
@@ -661,6 +720,7 @@ document.addEventListener("click",function(ev){
   var el=ev.target.closest("[data-act]");if(!el)return;
   var a=el.dataset.act;
   if(a==="closeSheet"){closeSheet();render();}
+  else if(a.indexOf("supp")===0){suppAct(a,el);}
   else if(a==="info"){var box=el.closest("li.xr,.ex"),pn=box.querySelector(".xp");pn.hidden=!pn.hidden;el.setAttribute("aria-expanded",String(!pn.hidden));}
   else if(a==="pick"){ui.pick=el.dataset.type;render();}
   else if(a==="start")startSession(el.dataset.type);
