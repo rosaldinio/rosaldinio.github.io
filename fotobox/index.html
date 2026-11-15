@@ -36,6 +36,15 @@ button{font-family:inherit}
 .tile.n b{font-size:17px;padding-top:6px}
 .tile i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
 .search{width:100%;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px 16px;color:var(--ink);font:500 16px var(--font);margin-bottom:10px}
+.tile.btn2{text-align:left;color:inherit;font-family:inherit;cursor:pointer}
+.tile.n b{display:flex;align-items:center;gap:6px}
+.prow{display:grid;grid-template-columns:1fr 1fr 44px;gap:8px;margin-top:8px;align-items:center}
+.prow input{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--ink);font:500 16px var(--font);color-scheme:dark;min-height:44px}
+.pl{display:grid;grid-template-columns:1fr 1fr 44px;gap:8px;font-size:12px;color:var(--mut);margin-top:6px}
+.amt{font-weight:700;color:#fff}.amt.w{color:var(--ang);font-weight:600}
+.sumbox{background:var(--card2);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-top:12px}
+.sumbox div{display:flex;justify-content:space-between;padding:3px 0;color:var(--mut)}
+.sumbox .tot{color:#fff;font-weight:700;font-size:19px;border-top:1px solid var(--line);margin-top:6px;padding-top:8px}
 .chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -14px 14px;padding:0 14px}.chips::-webkit-scrollbar{display:none}
 .chip{font:600 14px var(--font);color:var(--mut);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:9px 15px;white-space:nowrap;cursor:pointer;min-height:40px}
 .chip[aria-pressed="true"]{background:var(--grad);border-color:transparent;color:#fff}
@@ -153,10 +162,11 @@ const diffDays=(a,b)=>Math.round((dt(b)-dt(a))/864e5);
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 /* ---- Zustand ---- */
 let S=(function(){try{const o=JSON.parse(localStorage.getItem(LS));if(o&&Array.isArray(o.items))return o;}catch(e){}return {v:1,items:[]};})();
+if(!S.prices)S.prices={einzel:[],allin:[]};if(!S.prices.einzel)S.prices.einzel=[];if(!S.prices.allin)S.prices.allin=[];if(!S.priceBy)S.priceBy="event";
 function save(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
 let ui={tab:"list",f:"aktiv",q:"",ed:null,isNew:false,other:false,cm:todayIso().slice(0,7),cd:todayIso()};
 const get=id=>S.items.filter(i=>i.id===id)[0];
-function blank(von){return {id:"r"+Date.now()+Math.floor(Math.random()*999),name:"",tel:"",ort:"",art:"",quelle:"",von:von||"",bis:von||"",bg:"",note:"",paket:"",abst:"",abstZ:"18:00",cl:{res:false,bg:false},cancel:false,created:todayIso()};}
+function blank(von){return {id:"r"+Date.now()+Math.floor(Math.random()*999),name:"",tel:"",ort:"",art:"",quelle:"",von:von||"",bis:von||"",bg:"",note:"",paket:"",anfahrt:"",abst:"",abstZ:"18:00",cl:{res:false,bg:false},cancel:false,created:todayIso()};}
 function status(it){
   if(it.cancel)return "abgesagt";
   const e=it.bis||it.von;
@@ -203,6 +213,26 @@ function abstRange(it){
   const lo=addDays(it.von,-42),t=todayIso();
   return {min:lo>t?lo:t,max:it.von};
 }
+const fmtE=v=>new Intl.NumberFormat("de-DE",{style:"currency",currency:"EUR",minimumFractionDigits:Number.isInteger(v)?0:2,maximumFractionDigits:2}).format(v);
+function priceFor(p,it){
+  if(!p)return null;
+  const ref=S.priceBy==="created"?it.created:(it.von||todayIso());
+  const L=(S.prices[p]||[]).filter(r=>r.eur!==""&&r.eur!=null&&!isNaN(+r.eur)&&(r.ab||"")<=ref).sort((a,b)=>(a.ab||"").localeCompare(b.ab||""));
+  return L.length?+L[L.length-1].eur:null;
+}
+const travel=it=>{const v=parseFloat(String(it.anfahrt).replace(",","."));return isNaN(v)||v<0?0:v;};
+function money(it){
+  if(!it.paket)return {state:"open"};
+  const p=priceFor(it.paket,it);
+  if(p==null)return {state:"missing",travel:travel(it)};
+  return {state:"ok",pk:p,travel:travel(it),sum:p+travel(it)};
+}
+function moneyLabel(it){
+  const m=money(it);
+  if(m.state==="open")return '<span class="amt w">Paket offen</span>';
+  if(m.state==="missing")return '<span class="amt w">Preis fehlt</span>';
+  return '<span class="amt">'+fmtE(m.sum)+'</span>';
+}
 /* ---- Liste ---- */
 function filtered(){
   const q=ui.q.trim().toLowerCase(),t=todayIso();
@@ -220,14 +250,14 @@ function card(it){
   const hasTel=!!intl(it.tel);
   return '<article class="card rq" data-id="'+it.id+'" data-act="open" style="--st:'+STC[st]+'"><div class="rq-h"><div style="flex:1;min-width:0"><div class="rq-n">'+esc(it.name||"Ohne Namen")+'</div><div class="rq-m">'+esc(range(it))+(it.ort?' · '+esc(it.ort):'')+'</div>'+(it.abst&&!it.cancel&&it.abst>=todayIso()?'<div class="rq-m" style="color:#c4b5fd">Abstimmung: '+esc(fmtD(it.abst,{weekday:"short",day:"2-digit",month:"2-digit"}))+(it.abstZ?', '+esc(it.abstZ)+' Uhr':'')+'</div>':'')+'<div style="margin-top:8px"><span class="pill st">'+STN[st]+'</span>'+(it.art?'<span class="pill">'+esc(it.art)+'</span>':'')+(ov?'<span class="pill warn">Überschneidung</span>':'')+'</div></div>'+
    '<div class="rq-a"><button class="ic sm" data-act="qcall" data-id="'+it.id+'" aria-label="Anrufen"'+(it.tel?'':' disabled style="opacity:.3"')+'>'+I.call+'</button><button class="ic sm" data-act="qwa" data-id="'+it.id+'" aria-label="WhatsApp"'+(hasTel?' style="color:#4ade80"':' disabled style="opacity:.3"')+'>'+I.wa+'</button></div></div>'+
-   '<div class="prog">'+[0,1,2,3].map(i=>'<i class="'+(i<n?'on':'')+'"></i>').join("")+'</div><div class="prog-l"><span>'+n+' von 4 abgestimmt</span><span>'+(it.paket?PK[it.paket]:'Paket offen')+'</span></div></article>';
+   '<div class="prog">'+[0,1,2,3].map(i=>'<i class="'+(i<n?'on':'')+'"></i>').join("")+'</div><div class="prog-l"><span>'+n+' von 4 abgestimmt</span><span>'+(it.paket?PK[it.paket]+' · ':'')+moneyLabel(it)+'</span></div></article>';
 }
 function viewList(){
   const t=todayIso(),act=S.items.filter(i=>["angefragt","reserviert"].indexOf(status(i))>=0);
   const nxt=act.filter(i=>i.von&&(i.bis||i.von)>=t).sort((a,b)=>a.von.localeCompare(b.von))[0];
   let nTxt="–",nSub="Nächster Termin";
   if(nxt){const d=diffDays(t,nxt.von);nTxt=d<=0?"läuft":d===1?"morgen":"in "+d+" Tagen";nSub=nxt.name||"Nächster Termin";}
-  let h='<div class="tiles"><div class="tile"><b>'+S.items.filter(i=>status(i)==="angefragt").length+'</b><span><i style="background:var(--ang)"></i>Angefragt</span></div><div class="tile"><b>'+S.items.filter(i=>status(i)==="reserviert").length+'</b><span><i style="background:var(--res)"></i>Reserviert</span></div><div class="tile n"><b>'+esc(nTxt)+'</b><span>'+esc(nSub)+'</span></div></div>';
+  let h='<div class="tiles"><div class="tile"><b>'+S.items.filter(i=>status(i)==="angefragt").length+'</b><span><i style="background:var(--ang)"></i>Angefragt</span></div><div class="tile"><b>'+S.items.filter(i=>status(i)==="reserviert").length+'</b><span><i style="background:var(--res)"></i>Reserviert</span></div>'+(nxt?'<button class="tile n btn2" data-act="open" data-id="'+nxt.id+'" aria-label="Nächsten Termin öffnen">':'<div class="tile n">')+'<b>'+esc(nTxt)+(nxt?'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>':'')+'</b><span>'+esc(nSub)+'</span>'+(nxt?'</button>':'</div>')+'</div>';
   h+='<input class="search" id="q" type="search" placeholder="Suchen: Name, Ort, Art …" value="'+esc(ui.q)+'" aria-label="Suchen"><div class="chips">'+FIL.map(f=>'<button class="chip" data-act="fil" data-v="'+f[0]+'" aria-pressed="'+(ui.f===f[0])+'">'+f[1]+'</button>').join("")+'</div>';
   h+='<div id="lst">'+listBody()+'</div>';
   return h;
@@ -275,6 +305,7 @@ function edHtml(it){
    '<button class="ck'+(it.cl.res?' on':'')+'" data-act="tick" data-k="res"><span class="bx">'+I.chk+'</span><span>Reserviert'+(it.cl.res?'':'<small>Termin verbindlich geblockt</small>')+'</span></button>'+
    '<button class="ck'+(it.cl.bg?' on':'')+'" data-act="tick" data-k="bg"><span class="bx">'+I.chk+'</span><span>Hintergrund abgestimmt'+(it.cl.bg&&it.bg?'<small>'+esc(it.bg)+'</small>':'')+'</span></button>'+
    '<div class="pkw"><div class="ck'+(it.paket?' on':'')+'"><span class="bx">'+I.chk+'</span><span>Paket ausgewählt'+(it.paket?'<small>'+PK[it.paket]+'</small>':'<small>Bitte wählen</small>')+'</span></div><div class="seg">'+Object.keys(PK).map(k=>'<button class="chip" data-act="pk" data-v="'+k+'" aria-pressed="'+(it.paket===k)+'">'+PK[k]+'</button>').join("")+'</div></div></div>';
+  h+='<div class="card" style="--st:var(--res)"><p class="sec">Preis</p><label class="f" style="margin-top:0">Anfahrt (Pauschale in €, optional)<input data-f="anfahrt" type="number" inputmode="decimal" step="0.01" min="0" value="'+esc(it.anfahrt)+'" placeholder="0"></label><div class="sumbox" id="sumbox">'+sumHtml(it)+'</div></div>';
   const ar=abstRange(it);
   h+='<div class="card" style="--st:var(--b)"><p class="sec">Abstimmtermin</p>';
   if(!ar)h+='<p class="hint" style="margin:0">'+(it.von?'Die Veranstaltung liegt in der Vergangenheit.':'Trage zuerst das Datum der Veranstaltung ein. Der Abstimmtermin kann bis zu 6 Wochen davor liegen.')+'</p>';
@@ -290,6 +321,12 @@ function edHtml(it){
   h+='<div class="rows"><button class="btn ghost" data-act="ics"'+(it.von?'':' disabled')+'>Termin in den Kalender</button><button class="btn ghost" data-act="cancel">'+(it.cancel?'Anfrage wieder aktivieren':'Anfrage absagen')+'</button><button class="btn ghost danger" data-act="del">Löschen</button></div>';
   return h;
 }
+function sumHtml(it){
+  const m=money(it);
+  if(m.state==="open")return '<div>Paket</div><div class="tot" style="color:var(--ang)"><span>Noch kein Paket gewählt</span></div>'+(travel(it)?'<div><span>Anfahrt</span><span>'+fmtE(travel(it))+'</span></div>':'');
+  if(m.state==="missing")return '<div><span>'+PK[it.paket]+'</span><span style="color:var(--ang)">kein Preis hinterlegt</span></div><div><span>Anfahrt</span><span>'+fmtE(m.travel)+'</span></div><div class="tot"><span>Summe</span><span>–</span></div><p class="hint" style="margin:8px 0 0">Preise findest du oben rechts unter Einstellungen.</p>';
+  return '<div><span>'+PK[it.paket]+'</span><span>'+fmtE(m.pk)+'</span></div><div><span>Anfahrt</span><span>'+fmtE(m.travel)+'</span></div><div class="tot"><span>Summe</span><span>'+fmtE(m.sum)+'</span></div>';
+}
 function openEd(id,isNew){ui.ed=id;ui.isNew=!!isNew;ui.other=false;const e=document.getElementById("ed");document.getElementById("edIn").innerHTML=edHtml(get(id));e.classList.add("on");e.scrollTop=0;document.body.classList.add("noscroll");}
 function redrawEd(){const e=document.getElementById("ed"),y=e.scrollTop;document.getElementById("edIn").innerHTML=edHtml(get(ui.ed));e.scrollTop=y;}
 function closeEd(){
@@ -301,6 +338,17 @@ function newReq(von){const it=blank(von);S.items.push(it);save();openEd(it.id,tr
 /* ---- Sheets ---- */
 function openSheet(h){document.getElementById("sheetIn").innerHTML=h;document.getElementById("sheet").classList.add("on");document.getElementById("veil").classList.add("on");}
 function closeSheet(){document.getElementById("sheet").classList.remove("on");document.getElementById("veil").classList.remove("on");}
+function priceRows(p){
+  const L=S.prices[p];
+  return (L.length?'<div class="pl"><span>gültig ab</span><span>Preis in €</span><span></span></div>':'')+L.map((r,i)=>'<div class="prow"><input type="date" data-pr="'+p+'" data-i="'+i+'" data-k="ab" value="'+esc(r.ab)+'" aria-label="gültig ab"><input type="number" step="0.01" min="0" inputmode="decimal" data-pr="'+p+'" data-i="'+i+'" data-k="eur" value="'+esc(r.eur)+'" placeholder="0" aria-label="Preis"><button class="ic sm" data-act="delpr" data-p="'+p+'" data-i="'+i+'" aria-label="Preis entfernen">×</button></div>').join("")+'<button class="chip" data-act="addpr" data-p="'+p+'" style="margin-top:10px">+ Preis hinzufügen</button>';
+}
+function settingsSheet(){
+  openSheet('<h3>Einstellungen</h3><p class="sec">Preise</p><p class="hint" style="margin:0 0 6px">Ein Preis gilt ab dem eingetragenen Datum, bis ein neuerer beginnt. Ohne Datum gilt er immer.</p>'+
+   '<p class="sec" style="margin-top:14px;color:var(--ink)">'+PK.einzel+'</p>'+priceRows("einzel")+
+   '<p class="sec" style="margin-top:18px;color:var(--ink)">'+PK.allin+'</p>'+priceRows("allin")+
+   '<p class="sec" style="margin-top:18px">„Ab wann“ bezieht sich auf</p><div class="chips wrap" style="margin-top:0"><button class="chip" data-act="pby" data-v="event" aria-pressed="'+(S.priceBy==="event")+'">Veranstaltungsdatum</button><button class="chip" data-act="pby" data-v="created" aria-pressed="'+(S.priceBy==="created")+'">Anfragedatum</button></div>'+
+   '<p class="sec" style="margin-top:22px">Sicherung</p><div class="btns" style="margin-top:0"><button class="btn ghost" data-act="export">Sicherung speichern</button><button class="btn ghost" data-act="import">Einspielen</button></div><p class="hint">Alle Daten liegen nur auf diesem Gerät. Speichere ab und zu eine Sicherung, besonders bevor du den Browser-Speicher leerst.</p><div class="btns"><button class="btn" data-act="closeSheet">Fertig</button></div>');
+}
 /* ---- Ereignisse ---- */
 document.addEventListener("click",ev=>{
   const tb=ev.target.closest(".tab");
@@ -332,7 +380,11 @@ document.addEventListener("click",ev=>{
     case "del":openSheet('<h3>Anfrage löschen?</h3><p class="hint">„'+esc(it.name||"Ohne Namen")+'“ wird endgültig gelöscht. Alternativ kannst du sie absagen, dann bleibt sie unter „Abgesagt“ erhalten.</p><div class="btns"><button class="btn ghost" data-act="closeSheet">Abbrechen</button><button class="btn" data-act="delnow">Löschen</button></div>');break;
     case "delnow":S.items=S.items.filter(i=>i.id!==ui.ed);save();closeSheet();ui.isNew=false;closeEd();break;
     case "closeSheet":closeSheet();break;
-    case "settings":openSheet('<h3>Einstellungen</h3><p class="sec">Sicherung</p><div class="btns" style="margin-top:0"><button class="btn ghost" data-act="export">Sicherung speichern</button><button class="btn ghost" data-act="import">Einspielen</button></div><p class="hint">Alle Daten liegen nur auf diesem Gerät. Speichere ab und zu eine Sicherung, besonders bevor du den Browser-Speicher leerst.</p><div class="btns"><button class="btn" data-act="closeSheet">Fertig</button></div>');break;
+    case "settings":settingsSheet();break;
+    case "addpr":S.prices[el.dataset.p].push({ab:"",eur:""});save();settingsSheet();break;
+    case "delpr":S.prices[el.dataset.p].splice(+el.dataset.i,1);save();settingsSheet();render();if(ui.ed)redrawEd();break;
+    case "pby":S.priceBy=el.dataset.v;save();settingsSheet();render();if(ui.ed)redrawEd();break;
+    case "settings_old":openSheet('<h3>Einstellungen</h3><p class="sec">Sicherung</p><div class="btns" style="margin-top:0"><button class="btn ghost" data-act="export">Sicherung speichern</button><button class="btn ghost" data-act="import">Einspielen</button></div><p class="hint">Alle Daten liegen nur auf diesem Gerät. Speichere ab und zu eine Sicherung, besonders bevor du den Browser-Speicher leerst.</p><div class="btns"><button class="btn" data-act="closeSheet">Fertig</button></div>');break;
     case "export":shareFile("fotobox-sicherung.json","application/json",JSON.stringify(S),"Fotobox-Sicherung");break;
     case "import":document.getElementById("imp").click();break;
   }
@@ -344,11 +396,14 @@ document.addEventListener("input",ev=>{
   const it=get(ui.ed);
   if(f==="von"||f==="bis"||f==="abst"||f==="abstZ")return;
   it[f]=t.value;save();
+  if(f==="anfahrt"){const b=document.getElementById("sumbox");if(b)b.innerHTML=sumHtml(it);return;}
   if(f==="tel"){const ok=!!intl(it.tel),w=document.querySelector(".act.wa"),c=document.querySelector(".act.call"),v=document.querySelector(".act.vc");if(w)w.disabled=!ok;if(c)c.disabled=!it.tel;if(v)v.disabled=!(it.name&&it.tel);}
   if(f==="name"){const v=document.querySelector(".act.vc");if(v)v.disabled=!(it.name&&it.tel);}
 });
 document.addEventListener("change",ev=>{
-  const t=ev.target,f=t.dataset&&t.dataset.f;if(!f||!ui.ed)return;
+  const t=ev.target;
+  if(t.dataset&&t.dataset.pr){const r=S.prices[t.dataset.pr][+t.dataset.i];if(r){r[t.dataset.k]=t.dataset.k==="eur"?(t.value===""?"":+t.value):t.value;save();render();if(ui.ed)redrawEd();}return;}
+  const f=t.dataset&&t.dataset.f;if(!f||!ui.ed)return;
   const it=get(ui.ed);
   if(f==="von"||f==="bis"){
     it[f]=t.value;
